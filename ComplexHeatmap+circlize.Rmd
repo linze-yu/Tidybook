@@ -215,8 +215,8 @@ RGB/LAB/XYZ/sRGB/LUV
 ```{r}
 col_fun <- colorRamp2(c(-2, 0, 2), c("#4DB6AD", "#E6EEF1", "#E37538"), space = "sRGB")
 col_fun(seq(-3, 3))
-Heatmap(m2, name = "m2", col = col_fun)
-Heatmap(abs(m2), name = "m2", col = col_fun, column_title = "abs(m)")
+Heatmap(m2, name = "m2", col = col_fun) -> p1
+Heatmap(abs(m2), name = "m2", col = col_fun, column_title = "abs(m)") -> p2
 Heatmap(m2,
   name = "m2", col = rev(viridis::viridis(50)),
   column_title = "set a color vector for a continuous matrix"
@@ -318,18 +318,24 @@ Heatmap(m2,
   border = T, # 聚类拆分边框
   width = unit(8, "cm"), # 宽度
   height = unit(8, "cm"), # 高度
-  #heatmap_width = unit(8, "cm"), 
-  #heatmap_height = unit(8, "cm"),
+  # heatmap_width = unit(8, "cm"),
+  # heatmap_height = unit(8, "cm"),
   use_raster = T, # 栅格化
   raster_quality = 5, # 缩放因子
 )
 ```
 
+## 拼接
+```{r}
+p1 + p2
+```
+
 ## 图例
 (circlize)
 ```{r}
-col_fun = colorRamp2(c(0, 0.5, 1), c("#50B8CB", "#E6EEF1", "#E37538"))
-lgd = Legend(col_fun = col_fun, title = "图例")
+col_fun <- colorRamp2(c(0, 0.5, 1), c("#50B8CB", "#E6EEF1", "#E37538"))
+lgd <- Legend(col_fun = col_fun, title = "图例")
+draw(lgd, x = unit(1, "npc"), y = unit(1, "npc"), just = c("mid","mid"))#"right","left","top","bottom"
 ```
 
 
