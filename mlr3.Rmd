@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = T, comment = "", echo = T, dpi = 200, collapse = T, fig.align = "left", dev = "png", prompt = F, cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -35,27 +35,32 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = T, comment =
 ## 加载包
 ```{r 加载包}
 library("YuriR") #
-# library("mlr3verse") #
+library("mlr3verse") #
 library("MASS") #
 library("nnet") #
 # library("survival")#
 library("AER") #
 library("glmnet") #
+library("randomForest") # 随机森林
+library("caret")
+library("pROC")
 ```
 
 # mlr3
 ```{r}
-import("D:/desktop/book/tidybook/data/iris.xlsx") %>%
-  data.table() -> data
+import("D:/desktop/book/tidybook/data/mlr3/mtcars.xlsx") %>%
+  data.table() %>%
+select_mix(1:3)-> data
 ```
 
-# (glmnet)
 ```{r}
-data(QuickStartExample)
-fit = glmnet(x, y, alpha = 0.2, weights = c(rep(1,50),rep(2,50)), nlambda = 20)
-print(fit)
+task_mtcars <- as_task_regr(data, target = "mpg", id = "cars")
+print(task_mtcars)
 ```
 
+```{r}
+autoplot(task_mtcars, type = "pairs")
+```
 
 
 
@@ -209,3 +214,45 @@ ggplot(testdata, aes(x = rating, y = prob)) +
   geom_label(aes(label = round(prob, 2))) +
   Yuri_theme
 ```
+
+# 随机森林
+(randomForest)
+```{r}
+data("iris") -> data
+trainlist <- createDataPartition(iris$Species, p = 0.8, list = F)
+trainset <- iris[trainlist, ]
+testset <- iris[-trainlist, ]
+```
+
+## 建模
+```{r}
+set.seed(2022)
+rf.train <- randomForest(as.factor(Species) ~ .,
+  data = trainset,
+  importance = T,
+  na.action = na.pass, # 略过缺失值
+  ntree = 500
+)
+
+plot(rf.train, main = "randomforest origin")
+rf.train
+```
+
+## 预测
+```{r}
+set.seed(2022)
+rf.test <- predict(rf.train, newdata = testset, type = "class")
+rf.cf <- caret::confusionMatrix(as.factor(rf.test), as.factor(testset$Species), )
+rf.test
+rf.cf
+```
+
+## ROC
+```{r}
+rf.test2 <- predict(rf.train, newdata = testset, type = "prob")
+head(rf.test2)
+roc.rf <- multiclass.roc(testset$Species, rf.test2)
+roc.rf
+```
+
+randomForest()函数中的两个重要参数为ntree和mtry,其中ntree为包含的基分类器个数,默认为500;mtry为每个决策树包含的变量个数,默认为logN,数据量不大时可以循环选择最优参数值,eval = F

@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -41,7 +41,7 @@ library("ggbeeswarm") # 散点防止重合
 library("ggside") # 边际直方图/密度曲线
 library("hexbin") # 六边形
 library("ggpointdensity") # 散点图和二维密度图之间的交叉
-library("webr") # 饼图+甜甜圈图+旭日图+检验绘图
+# library("webr") # 饼图+甜甜圈图+旭日图+检验绘图
 # library("ggwordcloud")#词云
 # library("gghalves")#组合
 ```
@@ -466,14 +466,48 @@ c %>%
   Yuri_theme
 ```
 
-# (webr)饼图+甜甜圈图+旭日图
+# YuriR
 ```{r}
-import("D:/desktop/book/tidybook/data/2019年全球医生和护士中的男性占比.xlsx") -> data
+import("D:/desktop/book/tidybook/data/other/临床决策曲线.xlsx") %>%
+  drop_na_dt() %>%
+  data.frame() -> data
+stdca(
+  data = data,
+  outcome = "event",
+  ttoutcome = "time",
+  predictors = c("Age"), # "Weight loss","Score","Age"
+  timepoint = 365,
+  xstart = 0.01,
+  xstop = 0.99,
+  xby = 0.01,
+  ymin = -0.05,
+  probability = F,
+  harm = NULL,
+  graph = F,
+  intervention = F,
+  interventionper = 100,
+  smooth = F,
+  loess.span = 0.1,
+  cmprsk = F
+) -> data1
+data1$net.benefit -> data2
+data2 %>%
+  select_mix(threshold, none) -> data3
+data2 %>%
+  select_mix(-c("threshold", "none")) %>%
+  mutate_when(all <= -0.05, all = "NA") -> data4
+data3 %>%
+  cbind(data4) -> data5
+data5 %>%
+  longer_dt(threshold, name = "group", value = "value") %>%
+  ggplot(., aes(x = threshold, y = value, color = group)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  # expand_limits(x = c(0, 1), y = c(0, 0.6)) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = seq(0, 1, by = 0.05)) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = seq(0, 1, by = 0.1)) +
+  coord_fixed(ratio = 1 / 1) +
+  Yuri_theme +
+  theme(legend.position = (c(0.95, 0.95)))
 ```
-
-```{r}
-PieDonut(data, aes(pies = group, donuts = 男医生), labelposition = 1, title = "labelposition=1", explode = 1, selected = c(2, 3, 5), explodeDonut = T)
-```
-
-# ggforce
-
