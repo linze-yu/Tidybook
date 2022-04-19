@@ -1,2 +1,2 @@
-# tidybook
-tidybook
+# Tidybook
+Tidybook
