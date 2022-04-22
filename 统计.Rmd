@@ -43,7 +43,7 @@ library("rstatix") #
 `type = c("common", "robust", "five_number", "mean_sd", "mean_se", "mean_ci", "median_iqr", "median_mad", "quantile", "mean", "median", "min", "max")`  
 `show = c("min", "max", "median", "q1", "q3", "iqr", "mad", "mean", "sd", "se", "ci", "n")`  
 ```{r}
-import("D:/desktop/book/tidybook/data/mlr3/iris.xlsx") -> data
+import("D:/desktop/book/tidybook/data/tidymodels/iris.xlsx") -> data
 get_summary_stats(
   data = data,
   type = c("full"),
@@ -72,7 +72,7 @@ data %>%
 
 ## 马哈拉诺比距离标记多变量异常值`mahalanobis_distance()`
 ```{r}
-import("D:/desktop/book/tidybook/data/mlr3/iris.xlsx") -> data
+import("D:/desktop/book/tidybook/data/tidymodels/iris.xlsx") -> data
 data %>%
   # group_by(Species) %>%
   doo(~ mahalanobis_distance(.)) %>%
@@ -82,7 +82,7 @@ data %>%
 ## 夏皮罗-威尔克正态性测试
 ### 单变量夏皮罗-威尔克正态性检验`shapiro_test()`
 ```{r}
-import("D:/desktop/book/tidybook/data/mlr3/iris.xlsx") -> data
+import("D:/desktop/book/tidybook/data/tidymodels/iris.xlsx") -> data
 data %>%
   shapiro_test(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>%
   data.table()
@@ -236,9 +236,10 @@ cor.test(q$CO2, q$O2, method = "pearson", use = "complete.obs") # 处理缺失�
 `t.test(x, mu = 0, alternative = "two.sided")`  
 "two.sided"是双尾检验, "less"是左侧单尾检验, "greater"是右侧单尾检验
 ```{r}
-data1 <- import("D:/desktop/book/tidybook/data/case_MS/P56_t.xlsx") # 单样本t检验
+library("webr")
 data1 %>%
-  t.test(., mu = 14, alternative = "two.sided", conf.level = 0.95)
+  t.test(., mu = 14, alternative = "two.sided", conf.level = 0.95) %>%
+  plot()
 # 是否小于,less;是否大于,greater
 ```
 
@@ -250,22 +251,24 @@ data1 %>%
 
 ## 配对样本t检验12
 ```{r}
-data2 <- import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") # 配对样本t检验
-t.test(data2[, c("before")], data2[, c("after")], paired = T, var.equal = T, conf.level = 0.95, alternative = "two.sided")
+library("webr")
+t.test(data2[, c("before")], data2[, c("after")], paired = T, var.equal = T, conf.level = 0.95, alternative = "two.sided") %>%
+  plot()
 ```
 
 ## 独立样本t检验10
 ### 方差齐
 ```{r}
-data3 <- import("D:/desktop/book/tidybook/data/case_MS/P59_t.xlsx") # 独立样本t检验方差齐
-t.test(data3[, c("A")], data3[, c("B")], paired = F, var.equal = T, conf.level = 0.95, alternative = "two.sided")
+library("webr")
+t.test(data3[, c("A")], data3[, c("B")], paired = F, var.equal = T, conf.level = 0.95, alternative = "two.sided") %>%
+  plot()
 ```
 
 ### t'检验/方差不齐
 ```{r}
-set.seed(2022)
-data4 <- data.table(A = rnorm(30, mean = 50, sd = 25), B = rnorm(30, mean = 50, sd = 50)) # 独立样本t检验方差不齐
-t.test(data4[, c("A")], data4[, c("B")], paired = F, var.equal = F, conf.level = 0.95, alternative = "two.sided")
+library("webr")
+t.test(data4[, c("A")], data4[, c("B")], paired = F, var.equal = F, conf.level = 0.95, alternative = "two.sided") %>%
+  plot()
 ```
 
 # Wilcoxon检验

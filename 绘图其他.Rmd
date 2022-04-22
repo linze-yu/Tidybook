@@ -463,6 +463,7 @@ c %>%
   geom_segment(x = 2, y = 0.785, xend = 3, yend = 0.691, color = "#696AAD", size = 1) +
   geom_point(aes(x = group, y = mean), color = "#696AAD", shape = 21, size = 2, fill = NA, stroke = 1, ) +
   scale_y_continuous(breaks = seq(0, 2, by = 0.2), minor_breaks = seq(0, 0, by = 0)) +
+  scale_x_discrete(name = "", limits = c("1", "2", "3"), labels = c("A", "B", "C"), breaks = c("1", "2", "3")) +
   Yuri_theme
 ```
 

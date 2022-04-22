@@ -413,7 +413,7 @@ q %>%
   expand_limits(x = c(0, 200), y = c(0, 200), fill = seq(7, 7.5, by = 0.1))
 ```
 
-## 调整Y轴`scale_y_continuous(breaks = seq(, , by = ), minor_breaks = seq(, , by = ))`
+## 调整Y轴`scale_y_continuous(breaks = seq(, , by = ), minor_breaks = seq(, , by = ))`连续变量/`scale_y_discrete(limits = c(), labels = c(), breaks = c())`离散变量  
 ```{r}
 q %>%
   ggplot(., aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
@@ -421,7 +421,7 @@ q %>%
   scale_y_continuous(breaks = seq(40, 200, by = 20), minor_breaks = seq(40, 200, by = 10))
 ```
 
-## 调整X轴`scale_x_continuous(breaks = seq(, , by = ), minor_breaks = seq(, , by = ))`
+## 调整X轴`scale_x_continuous(breaks = seq(, , by = ), minor_breaks = seq(, , by = ))`连续变量/`scale_x_discrete(limits = c(), labels = c(), breaks = c())`离散变量  
 ```{r}
 q %>%
   ggplot(., aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +

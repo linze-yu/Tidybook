@@ -43,7 +43,6 @@ names(knitr::knit_engines$get())
 library("YuriR") #
 library("ggbeeswarm") # 散点防止重合
 library("tayloRswift") #
-library("ggExtra") # 边际直方图/密度曲线*
 library("ggside") # 边际直方图/密度曲线
 # library("ggwordcloud")#词云
 # library("gghalves")#组合
@@ -53,10 +52,12 @@ library("ggside") # 边际直方图/密度曲线
 # library("data.table")#
 # library("knitr")#
 # library("kableExtra")#表格+
-#----------------------------------------------
+# ----------------------------------------------
 # install.packages("devtools")
 # devtools::install_github("r-lib/devtools")
 # devtools::install_github("Yurisuriyel/YuriR")
+# font_install(source_han_serif())
+font_families()
 ```
 
 # RMarkdown使用
@@ -102,3 +103,29 @@ installr::updateR(fast = T, copy_packages = T)
 styler:::style_active_file()
 ```
 Addins %>% style active file
+
+```{r}
+seq(-3, 3, by = 0.01) %>%
+  expand.grid(x = ., y = .) %>%
+  ggplot(aes(x = (1 - x - sin(y^2)), y = (1 + y - cos(x^2)))) +
+  geom_point(alpha = 0.05, shape = 20, size = 0) +
+  Yuri_theme +
+  coord_polar()
+```
+
+```{r, eval = F}
+seq(-10, 10, by = 0.05) %>%
+  expand.grid(x = ., y = .) %>%
+  ggplot(aes(x = (x + pi * sin(y)), y = (y + pi * sin(x)))) +
+  geom_point(alpha = 0.1, shape = 15, size = 1, col = "darkmagenta") +
+  Yuri_theme
+```
+
+```{r}
+t <- seq(0, 100 * pi, length.out = 500 * 100)
+data.frame(x = t^(1 / 2) * cos(t), y = t^(1 / 2) * sin(t)) %>%
+  rbind(-.) %>%
+  ggplot(aes(x, y)) +
+  geom_polygon() +
+  Yuri_theme
+```

@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png")
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -429,6 +429,72 @@ top6 %>%
   ggplot(., aes(label = data6, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
+  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
+  Yuri_theme # F8CDCD
+```
+
+# 三体
+```{r}
+readLines("D:/desktop/book/tidybook/data/文字处理/三体.txt", encoding = "UTF-8") -> data7
+head(data7)
+```
+
+## 分词
+```{r}
+分词器7 <- worker(
+  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
+  dict = DICTPATH, # 系统词典
+  hmm = HMMPATH,
+  user = USERPATH, # 用户词典
+  user_weight = "max", # min,median
+  idf = IDFPATH,
+  stop_word = "D:/desktop/book/Text Mining/stop.txt",
+  write = T,
+  qmax = 20,
+  topn = 5,
+  encoding = "UTF-8",
+  detect = T,
+  symbol = F,
+  # lines = 1e+05, # 读取行数,大文件,实现分次读取
+  output = NULL,
+  bylines = F
+)
+```
+
+```{r}
+segment(data7, 分词器7) -> data7
+```
+
+## 除去数字
+```{r}
+data7 <- data7[!grepl("[0-9]", data7)]
+```
+
+## 除去单字
+```{r}
+data7 <- data7[nchar(data7) >= 2]
+```
+
+## 统计频数
+```{r}
+# table(data7)
+```
+
+## 提取
+```{r}
+top7 <- sort(table(data7), decreasing = T)[1:50]
+top7 %>%
+  data.table() -> top7
+```
+
+## 词云
+```{r}
+set.seed(2022)
+top7 %>%
+  mutate_vars(N, scale) %>%
+  ggplot(., aes(label = data7, size = N, color = N)) +
+  geom_text_wordcloud(family = "Source Han Sans") +
+  scale_size_area(max_size = 20) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
   Yuri_theme # F8CDCD
 ```
