@@ -34,14 +34,11 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-
-```
-
 library("YuriR") #
 # library("mlr3verse") #
 library("tidymodels") #
 library("igraph")
- 
+
 library("broom.mixed")
 library("dotwhisker")
 # remotes::install_github("fsolt/dotwhisker")
@@ -54,6 +51,7 @@ library("glmnet") #
 library("randomForest") # 随机森林
 library("caret")
 library("pROC")
+```
 
 # 海胆
 ```{r}
@@ -69,7 +67,7 @@ urchins %>%
   geom_smooth(method = lm, se = F) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme+
+  Yuri_theme +
   theme(legend.position = (c(0.2, 0.95)))
 ```
 
@@ -78,7 +76,7 @@ linear_reg()
 ```
 
 ```{r}
-linear_reg() %>% 
+linear_reg() %>%
   set_engine("keras")
 ```
 
@@ -87,8 +85,8 @@ lm_mod <- linear_reg()
 ```
 
 ```{r}
-lm_fit <- 
-  lm_mod %>% 
+lm_fit <-
+  lm_mod %>%
   fit(width ~ initial_volume * food_regime, data = urchins)
 lm_fit
 ```
@@ -98,15 +96,19 @@ tidy(lm_fit)
 ```
 
 ```{r}
-tidy(lm_fit) %>% 
-  dwplot(dot_args = list(size = 2, color = "black"),
-         whisker_args = list(color = "black"),
-         vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2))
+tidy(lm_fit) %>%
+  dwplot(
+    dot_args = list(size = 2, color = "black"),
+    whisker_args = list(color = "black"),
+    vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2)
+  )
 ```
 
 ```{r}
-new_points <- expand.grid(initial_volume = 20, 
-                          food_regime = c("Initial", "Low", "High"))
+new_points <- expand.grid(
+  initial_volume = 20,
+  food_regime = c("Initial", "Low", "High")
+)
 new_points
 ```
 
@@ -116,40 +118,45 @@ mean_pred
 ```
 
 ```{r}
-conf_int_pred <- predict(lm_fit, 
-                         new_data = new_points, 
-                         type = "conf_int")
+conf_int_pred <- predict(lm_fit,
+  new_data = new_points,
+  type = "conf_int"
+)
 conf_int_pred
 ```
 
 ```{r}
-plot_data <- 
-  new_points %>% 
-  bind_cols(mean_pred) %>% 
+plot_data <-
+  new_points %>%
+  bind_cols(mean_pred) %>%
   bind_cols(conf_int_pred)
 ```
 
 ```{r}
-ggplot(plot_data, aes(x = food_regime)) + 
-  geom_point(aes(y = .pred)) + 
-  geom_errorbar(aes(ymin = .pred_lower, 
-                    ymax = .pred_upper),
-                width = .2) + 
+ggplot(plot_data, aes(x = food_regime)) +
+  geom_point(aes(y = .pred)) +
+  geom_errorbar(aes(
+    ymin = .pred_lower,
+    ymax = .pred_upper
+  ),
+  width = .2
+  ) +
   labs(y = "urchin size")
 ```
 
 ```{r}
 prior_dist <- rstanarm::student_t(df = 1)
 set.seed(2022)
-bayes_mod <-   linear_reg() %>% 
-  set_engine("stan", 
-             prior_intercept = prior_dist, 
-             prior = prior_dist) 
+bayes_mod <- linear_reg() %>%
+  set_engine("stan",
+    prior_intercept = prior_dist,
+    prior = prior_dist
+  )
 ```
 
 ```{r}
-bayes_fit <- 
-  bayes_mod %>% 
+bayes_fit <-
+  bayes_mod %>%
   fit(width ~ initial_volume * food_regime, data = urchins)
 
 print(bayes_fit, digits = 5)
@@ -160,35 +167,37 @@ tidy(bayes_fit, conf.int = TRUE)
 ```
 
 ```{r}
-bayes_plot_data <- 
-  new_points %>% 
-  bind_cols(predict(bayes_fit, new_data = new_points)) %>% 
+bayes_plot_data <-
+  new_points %>%
+  bind_cols(predict(bayes_fit, new_data = new_points)) %>%
   bind_cols(predict(bayes_fit, new_data = new_points, type = "conf_int"))
 
-ggplot(bayes_plot_data, aes(x = food_regime)) + 
-  geom_point(aes(y = .pred)) + 
-  geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), width = .2) + 
-  labs(y = "urchin size") + 
+ggplot(bayes_plot_data, aes(x = food_regime)) +
+  geom_point(aes(y = .pred)) +
+  geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), width = .2) +
+  labs(y = "urchin size") +
   ggtitle("Bayesian model with t(1) prior distribution")
 ```
 
 ```{r}
-urchins %>% 
-  group_by(food_regime) %>% 
+urchins %>%
+  group_by(food_regime) %>%
   summarize(med_vol = median(initial_volume))
 ```
 
 ```{r}
-bayes_mod %>% 
+bayes_mod %>%
   fit(width ~ initial_volume * food_regime, data = urchins)
 ```
 
 ```{r}
-ggplot(urchins,
-       aes(initial_volume, width)) +      # returns a ggplot object 
-  geom_jitter() +                         # same
-  geom_smooth(method = lm, se = FALSE) +  # same                    
-  labs(x = "Volume", y = "Width") 
+ggplot(
+  urchins,
+  aes(initial_volume, width)
+) + # returns a ggplot object
+  geom_jitter() + # same
+  geom_smooth(method = lm, se = FALSE) + # same
+  labs(x = "Volume", y = "Width")
 ```
 
 

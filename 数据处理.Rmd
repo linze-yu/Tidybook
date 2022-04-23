@@ -275,13 +275,13 @@ mat
 
 ### 矩阵变列表
 ```{r}
-tdf = mat_df(mat)
+tdf <- mat_df(mat)
 tdf
 ```
 
 ### 列表变矩阵
 ```{r}
-mat = df_mat(tdf,row,col,value)
+mat <- df_mat(tdf, row, col, value)
 mat
 ```
 
@@ -356,4 +356,3 @@ q[, .(sum = sum(CO2), mean = mean(O2), median = median(age), sd = sd(pH))] # dat
 ```
 
 # 数据变换data.table
-
