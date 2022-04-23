@@ -49,7 +49,7 @@ import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") %>%
   scale_y_continuous(breaks = seq(40, 200, by = 20), minor_breaks = seq(40, 200, by = 10)) +
   scale_size_continuous(seq(65, 85, by = 5), range = c(2, 5)) +
   scale_color_manual(values = cols) +
-  scale_fill_gradientn(colors = c("#440154", "#470E61", "#481B6D", "#482576", "#46307E", "#443B84", "#404688", "#3C508B", "#38598C", "#33628D", "#2F6B8E", "#2C738E", "#287C8E", "#25838E", "#228C8D", "#1F948C", "#1E9D89", "#20A486", "#26AD81", "#31B57B", "#3FBC73", "#4FC46A", "#61CB5F", "#75D054", "#8BD646", "#A2DA37", "#B9DE28", "#D1E11C", "#E8E419", "#FDE725")) +
+  scale_fill_gradientn(colors = viridis::viridis(500)) +
   expand_limits(fill = seq(7.2, 7.5, by = 0.1)) -> p综合图
 ```
 

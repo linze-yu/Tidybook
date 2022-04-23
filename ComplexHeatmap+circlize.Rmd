@@ -223,6 +223,10 @@ Heatmap(m2,
 )
 ```
 
+```{r}
+viridis::viridis(100)
+```
+
 ### NA值
 ```{r}
 Heatmap(m2,
@@ -337,20 +341,6 @@ col_fun <- colorRamp2(c(0, 0.5, 1), c("#50B8CB", "#E6EEF1", "#E37538"))
 lgd <- Legend(col_fun = col_fun, title = "图例")
 draw(lgd, x = unit(1, "npc"), y = unit(1, "npc"), just = c("mid","mid"))#"right","left","top","bottom"
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## 3D
 ```{r}
