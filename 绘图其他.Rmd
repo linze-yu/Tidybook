@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 115, collapse = F, fig.align = "left", dev = "png", cache = T)
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -41,9 +41,257 @@ library("ggbeeswarm") # 散点防止重合
 library("ggside") # 边际直方图/密度曲线
 library("hexbin") # 六边形
 library("ggpointdensity") # 散点图和二维密度图之间的交叉
+# library("DiagrammeR") # 流程图
 # library("webr") # 饼图+甜甜圈图+旭日图+检验绘图
 # library("ggwordcloud")#词云
 # library("gghalves")#组合
+```
+
+# 流程图
+流程图属于(DiagrammeR)中的Graphviz图  
+`grViz()`
+
+```{r}
+grViz("
+digraph a_nice_graph {
+
+# node definitions with substituted label text
+node [fontname = Helvetica]
+a [label = '@@1']
+b [label = '@@2-1']
+c [label = '@@2-2']
+d [label = '@@2-3']
+e [label = '@@2-4']
+f [label = '@@2-5']
+g [label = '@@2-6']
+h [label = '@@2-7']
+i [label = '@@2-8']
+j [label = '@@2-9']
+k [label = '@@3-10']
+l [label = '@@4-11']
+m [label = '@@5-12']
+
+# edge definitions with the node IDs
+a -> {b c d e f g h i j}->{k l m}
+}
+
+[1]: 'top'
+[2]: 10:21
+")
+```
+
+```{r}
+grViz("
+digraph dot {
+
+graph [layout = dot]
+
+node [shape = circle,
+      style = filled,
+      color = grey,
+      label = '']
+
+node [fillcolor = red]
+a
+
+node [fillcolor = green]
+b c d
+
+node [fillcolor = orange]
+
+edge [color = grey]
+a -> {b c d}
+b -> {e f g h i j}
+c -> {k l m n o p}
+d -> {q r s t u v}
+}")
+```
+
+```{r}
+grViz("
+digraph dot {
+
+graph [layout = dot,
+       rankdir = LR]
+
+node [shape = circle,
+      style = filled,
+      color = grey,
+      label = '']
+
+node [fillcolor = red]
+a
+
+node [fillcolor = green]
+b c d
+
+node [fillcolor = orange]
+
+edge [color = grey]
+a -> {b c d}
+b -> {e f g h i j}
+c -> {k l m n o p}
+d -> {q r s t u v}
+}")
+```
+
+```{r}
+grViz("
+digraph neato {
+
+graph [layout = neato]
+
+node [shape = circle,
+      style = filled,
+      color = grey,
+      label = '']
+
+node [fillcolor = red]
+a
+
+node [fillcolor = green]
+b c d
+
+node [fillcolor = orange]
+
+edge [color = grey]
+a -> {b c d}
+b -> {e f g h i j}
+c -> {k l m n o p}
+d -> {q r s t u v}
+}")
+```
+
+```{r}
+grViz("
+digraph twopi {
+
+graph [layout = twopi]
+
+node [shape = circle,
+      style = filled,
+      color = grey,
+      label = '']
+
+node [fillcolor = red]
+a
+
+node [fillcolor = green]
+b c d
+
+node [fillcolor = orange]
+
+edge [color = grey]
+a -> {b c d}
+b -> {e f g h i j}
+c -> {k l m n o p}
+d -> {q r s t u v}
+}")
+```
+
+```{r}
+grViz("
+digraph circo {
+
+graph [layout = circo]
+
+node [shape = circle,
+      style = filled,
+      color = grey,
+      label = '']
+
+node [fillcolor = red]
+a
+
+node [fillcolor = green]
+b c d
+
+node [fillcolor = orange]
+
+edge [color = grey]
+a -> {b c d}
+b -> {e f g h i j}
+c -> {k l m n o p}
+d -> {q r s t u v}
+}")
+```
+
+
+```{r}
+grViz("
+digraph boxes_and_circles {
+
+  # a 'graph' statement
+  graph [overlap = true, fontsize = 10]
+
+  # several 'node' statements
+  node [shape = box,
+        fontname = Helvetica]
+  A; B; C; D; E; F
+
+  node [shape = circle,
+        fixedsize = true,
+        width = 0.9] // sets as circles
+  1; 2; 3; 4; 5; 6; 7; 8
+
+  # several 'edge' statements
+  A->1 B->2 B->3 B->4 C->A
+  1->D E->A 2->4 1->5 1->F
+  E->6 4->6 5->7 6->7 3->8
+}
+")
+```
+
+```{r}
+grViz("
+      digraph flowchart {
+      # node definitions with substituted label text
+      node [fontname = Helvetica, shape = rectangle]
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      tab4 [label = '@@4']
+      tab5 [label = '@@5']
+      # edge definitions with the node IDs
+      tab1 -> tab2 -> tab3 -> tab4 -> tab5;
+      }
+      [1]: 'Questionnaire sent to n=1000 participants'
+      [2]: 'Participants responded to questionnaire n=850'
+      [3]: 'Participants came to clinic for evaluation n=700'
+      [4]: 'Participants eligible for the study n=600'
+      [5]: 'Study sample n=600'
+      ")
+```
+
+```{r}
+grViz("
+      digraph flowchart {
+      # node definitions with substituted label text
+      node [fontname = Helvetica, shape = rectangle]
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      tab4 [label = '@@4']
+      tab5 [label = '@@5']
+      tab6 [label = '@@6']
+      tab7 [label = '@@7']
+      tab8 [label = '@@8']
+      # edge definitions with the node IDs
+      tab1 -> tab2;
+      tab2 -> tab3 -> tab6;
+      tab2 -> tab4 -> tab5;
+      tab6 -> tab7 -> tab8;
+      tab5 -> tab7;
+      }
+      [1]: 'Questionnaire sent to n=1000 participants'
+      [2]: 'Participants came to clinic for evaluation n=700'
+      [3]: 'Participants non-eligible for the study n=100'
+      [4]: 'Participants eligible for the study n=600'
+      [5]: 'Study sample n=600'
+      [6]: 'sada non-eligible for the study n=100'
+      [7]: 'Participants asda for the study n=600'
+      [8]: 'Study sample n=as'
+      ")
 ```
 
 ```{r}

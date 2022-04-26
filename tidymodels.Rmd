@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png")
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -36,22 +36,266 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 ```{r 加载包}
 library("YuriR") #
 # library("mlr3verse") #
-library("tidymodels") #
-library("igraph")
 
-library("broom.mixed")
-library("dotwhisker")
+library("tidymodels") #
+library("broom.mixed") # 用于将贝叶斯模型转换为整洁的tibbles
+library("dotwhisker") # 用于可视化回归结果
+
 # remotes::install_github("fsolt/dotwhisker")
 library("rstanarm")
 library("MASS") #
 library("nnet") #
 # library("survival")#
 library("AER") #
-library("glmnet") #
+# library("glmnet") #
 library("randomForest") # 随机森林
 library("caret")
 library("pROC")
 ```
+
+# learn
+## 具有整洁数据原则的相关性和回归基础知识
+(tidymodels)
+
+## 具有整洁数据原理的 K 均值聚类(一种无监督学习)
+(tidymodels)  
+鸢尾花  
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/iris.xlsx") %>%
+  select_mix(Sepal.Length, Sepal.Width, Species) %>%
+  data.frame() -> data
+```
+
+```{r}   
+data %>%
+  ggplot(., aes(Sepal.Length, Sepal.Width, color = Species)) +
+  geom_point(alpha = 1, size = 3, shape = 21, stroke = 1) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  Yuri_theme
+```
+
+```{r}
+data %>%
+  select_mix(-c("Species")) -> points
+kmeans(points, centers = 3) -> kclust # 在一个矩阵上执行K均值聚类
+kclust
+summary(kclust) # 查看信息
+kclust$cluster # 查看聚类的结果,也就是每个点聚到了那个类
+kclust$centers # 查看中心点(聚类点)
+augment(kclust, points) # 将点分类添加到原始数据集
+tidy(kclust) %>% # 每个集群级别进行汇总
+  data.table()
+glance(kclust) # 提取单行摘要
+```
+
+### 探索性聚类
+探索从1到24的不同选择对此聚类的影响
+(furrr)
+```{r}
+tibble(k = 1:24) %>%
+  mutate(
+    kclust = future_map(k, ~ kmeans(points, .x)),
+    tidied = future_map(kclust, tidy),
+    glanced = future_map(kclust, glance),
+    augmented = future_map(kclust, augment, points)
+  ) -> kclusts
+kclusts
+```
+
+```{r}
+kclusts %>%
+  unnest(cols = c(tidied)) -> clusters
+clusters
+kclusts %>%
+  unnest(cols = c(augmented)) -> assignments
+assignments
+kclusts %>%
+  unnest(cols = c(glanced)) -> clusterings
+clusterings
+```
+
+```{r}
+assignments %>%
+  ggplot(., aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(color = .cluster), shape = 21, fill = NA, stroke = 0.5) +
+  geom_point(data = clusters, size = 10, shape = "*", color = 1) +
+  facet_wrap(~k, ncol = 4) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  Yuri_theme
+```
+
+```{r}
+clusterings %>%
+  ggplot(., aes(k, tot.withinss)) +
+  geom_line(size = 2, linetype = 3, color = "#FC766A") +
+  geom_point(size = 5, shape = 21, fill = NA, stroke = 2, color = "#34558B") +
+  scale_y_continuous(breaks = seq(0, 200, by = 25), minor_breaks = seq(0, 200, by = 5)) +
+  scale_x_continuous(breaks = seq(0, 13, by = 1), minor_breaks = seq(0, 0, by = 0)) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  Yuri_theme
+```
+
+## LASSO回归
+(glmnet)只接受矩阵形式的数据  
+变量过多&观测数较少  
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/Breast cancer survival agec.xlsx") %>%
+  na.omit() -> data
+dim(data)
+```
+
+```{r}
+y <- as.matrix(data[, 8]) # 结果
+x <- as.matrix(data[, c(2:7, 9:11)]) # 变量
+```
+
+```{r}
+f <- glmnet(x, y, family = "binomial", nlambda = 100, alpha = 1)
+# alpha=1是LASSO回归,alpha=0是岭回归
+```
+- `family="gaussian"` 适用于一维连续因变量(univariate)
+- `family="mgaussian"` 适用于多维连续因变量(multivariate)
+- `family="poisson"` 适用于非负次数因变量(count)
+- `family="binomial"` 适用于二元离散因变量(binary)
+- `family="multinomial"` 适用于多元离散因变量(category)
+
+```{r}
+f %>%
+  tidy()
+```
+
+```{r}
+plot(f, xvar = "lambda", label = T)
+```
+横坐标为随着lambdas的对数,纵坐标为变量系数,可以看到随着lambdas增加变量系数不断减少,部分变量系数变为0(等于没有这个变量)
+
+```{r}
+predict(f, newx = x[2:5, ], type = "response") # 交叉验证
+cvfit <- cv.glmnet(x, y)
+plot(cvfit)
+```
+
+两条虚线,一个是均方误差最小时的λ值,一个是距离均方误差最小时一个标准误的λ值
+```{r}
+tidy(cvfit)
+cvfit$lambda.min %>% # 求出最小值
+  data.table()
+cvfit$lambda.1se %>% # 求出最小值一个标准误的λ值
+  data.table()
+```
+
+代入测试
+```{r}
+l.coef2 <- coef(cvfit$glmnet.fit, s = 0.00551827, exact = F)
+l.coef1 <- coef(cvfit$glmnet.fit, s = 0.04272596, exact = F)
+l.coef1
+l.coef2
+```
+第一个模型变量都没有了,第二个模型还有5个变量  
+
+广义线性方程  
+```{r}
+glm(status ~ age + pathsize + lnpos + pr, family = "binomial", data = data) -> mod
+summary(mod)
+exp(confint(mod))
+```
+求OR&95%CI  
+
+## lasso回归中分类变量的处理
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/Breast cancer survival agec.xlsx") %>%
+  na.omit() -> data
+dim(data)
+```
+age表示年龄,
+lnpos表示腋窝淋巴结阳性,
+status结局事件是否死亡,
+pathscat表示病理肿瘤大小类别(分组变量),
+time是生存时间  
+
+把分类变量转成因子  
+```{r}
+data$er <- as.factor(data$er) # 雌激素受体状态
+data$pr <- as.factor(data$pr) # 孕激素受体状态
+data$ln_yesno <- as.factor(data$ln_yesno) # 是否有淋巴结肿大
+data$histgrad <- as.factor(data$histgrad) # 病理组织学等级
+data$pathscat <- as.factor(data$pathscat) # 病理肿瘤大小(厘米)
+```
+
+lasso的cox模型  
+提取结局和时间  
+```{r}
+y <- data$status
+time <- data$time
+```
+
+```{r}
+data %>%
+  select_mix(-c("id", "status", "time", "agec")) -> data1
+data1
+```
+
+分类变量变成哑变量矩阵形式  
+```{r}
+model_mat <- model.matrix(~ +er + pr + ln_yesno + histgrad + pathscat - 1, data1)
+```
+
+重新组成数据x
+```{r}
+x <- as.matrix(data.frame(
+  age = data1$age,
+  pathsize = data1$pathsize,
+  lnpos = data1$lnpos,
+  model_mat
+))
+```
+
+交叉验证
+```{r}
+set.seed(2022)
+cv.fit <- cv.glmnet(x, Surv(time, y), family = "cox", maxit = 1000)
+# cv.fit <- cv.glmnet(x, Surv(time, y), family = "cox", alpha = 1, nfolds = 10)
+plot(cv.fit)
+```
+maxit=1000是让它迭代1000次的意思,如果迭代没到1000次,可能会出现一次报错  
+
+```{r}
+cv.fit$lambda.min
+```
+
+```{r}
+fit <- glmnet(x, Surv(time, y), family = "cox", maxit = 1000)
+plot(fit)
+```
+
+查看和提取系数
+```{r}
+Coefficients <- coef(fit, s = cv.fit$lambda.min)
+Active.Index <- which(Coefficients != 0)
+Active.Coefficients <- Coefficients[Active.Index]
+Active.Index
+Active.Coefficients
+```
+
+标出了最后还剩下的变量的位置和变量的系数,对照x,没有预测功能,不能进行预测。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # 海胆
 ```{r}
@@ -71,22 +315,19 @@ urchins %>%
   theme(legend.position = (c(0.2, 0.95)))
 ```
 
+(parsnip)
 ```{r}
 linear_reg()
 ```
 
 ```{r}
 linear_reg() %>%
-  set_engine("keras")
+  set_engine("keras") # 模型引擎
 ```
 
 ```{r}
 lm_mod <- linear_reg()
-```
-
-```{r}
-lm_fit <-
-  lm_mod %>%
+lm_fit <- lm_mod %>%
   fit(width ~ initial_volume * food_regime, data = urchins)
 lm_fit
 ```
@@ -95,13 +336,15 @@ lm_fit
 tidy(lm_fit)
 ```
 
+(dotwhisker)
 ```{r}
 tidy(lm_fit) %>%
   dwplot(
-    dot_args = list(size = 2, color = "black"),
-    whisker_args = list(color = "black"),
-    vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2)
-  )
+    dot_args = list(size = 2, color = "#FC766A", shape = 21, stroke = 1),
+    whisker_args = list(size = 1, color = "#696AAD"),
+    vline = geom_vline(size = 1, xintercept = 0, colour = "#96999C", linetype = 2)
+  ) +
+  Yuri_theme
 ```
 
 ```{r}
@@ -369,7 +612,7 @@ fit.reduced <- glm(ynaffairs ~ age + yearsmarried + religiousness + rating, data
 anova(fit.full, fit.reduced, test = "Chisq")
 ```
 
-可以看到结果中p值等于0.2108大于0.05，表明四个变量和9个变量的模型拟合程度没有差别
+可以看到结果中p值等于0.2108大于0.05,表明四个变量和9个变量的模型拟合程度没有差别
 
 # 接下来是评价变量对结果概率的影响
 ## 构造一个测试集

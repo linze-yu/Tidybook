@@ -228,7 +228,8 @@ car::leveneTest(value ~ group, center = mean, data = data4整理)
 # 相关性检验7
 `cor.test(x, y, method = c("pearson", "kendall", "spearman"))`
 ```{r}
-cor.test(q$CO2, q$O2, method = "pearson", use = "complete.obs") # 处理缺失值
+cor.test(q$CO2, q$O2, method = "pearson", use = "complete.obs") %>% # 处理缺失值
+  tidy()
 ```
 
 # t检验
@@ -276,18 +277,21 @@ t.test(data4[, c("A")], data4[, c("B")], paired = F, var.equal = F, conf.level =
 `wilcox.test(x, mu = 0, alternative = "two.sided")`  
 "two.sided"是双尾检验, "less"是左侧单尾检验, "greater"是右侧单尾检验
 ```{r}
-wilcox.test(data1$C, mu = 14, alternative = "two.sided")
+wilcox.test(data1$C, mu = 14, alternative = "two.sided") %>%
+  tidy()
 ```
 
 ## 两独立样本Wilcoxon检验/Wilcoxon秩和检验/Mann-Whitney检验11
 `wilcox.test( ~ group, data = , var.equal = TRUE)`
 ```{r}
-wilcox.test(value ~ group, data = data3整理, var.equal = TRUE)
+wilcox.test(value ~ group, data = data3整理, var.equal = TRUE) %>%
+  tidy()
 ```
 
 ## 配对样本Wilcoxon检验13
 ```{r}
-wilcox.test(data2[, c("before")], data2[, c("after")], data = data2, paired = TRUE)
+wilcox.test(data2[, c("before")], data2[, c("after")], data = data2, paired = TRUE) %>%
+  tidy()
 ```
 
 # ANOVA

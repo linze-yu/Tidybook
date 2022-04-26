@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png")
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -312,6 +312,9 @@ q整理 %>%
 q整理 %>%
   ggplot(., aes(x = group, y = value, color = group1, fill = group1)) +
   stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_stack(), lineend = "square") +
+  scale_color_manual(values = viridis::viridis(2)) +
+  scale_fill_manual(values = viridis::viridis(2)) +
+  Yuri_theme +
   theme(legend.position = "none")
 ```
 
@@ -321,6 +324,9 @@ q整理 %>%
   ggplot(., aes(x = group, y = value, color = group1, fill = group1)) +
   stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_fill(), lineend = "square") +
   scale_y_continuous(labels = scales::percent) +
+  scale_color_manual(values = viridis::viridis(2)) +
+  scale_fill_manual(values = viridis::viridis(2)) +
+  Yuri_theme +
   theme(legend.position = "none")
 ```
 
@@ -329,6 +335,9 @@ q整理 %>%
 q整理 %>%
   ggplot(., aes(x = group, y = value, color = group1, fill = group1)) +
   stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_dodge(width = 1), lineend = "square") +
+  scale_color_manual(values = viridis::viridis(2)) +
+  scale_fill_manual(values = viridis::viridis(2)) +
+  Yuri_theme +
   theme(legend.position = "none")
 ```
 
@@ -337,6 +346,9 @@ q整理 %>%
 q整理 %>%
   ggplot(., aes(x = group, y = value, color = group1, fill = group1)) +
   stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_dodge2(width = 2, padding = 0), lineend = "square") +
+  scale_color_manual(values = viridis::viridis(2)) +
+  scale_fill_manual(values = viridis::viridis(2)) +
+  Yuri_theme +
   theme(legend.position = "none")
 ```
 
@@ -347,7 +359,10 @@ q整理 %>%
   ggplot(., aes(x = group, y = value, color = group1, fill = group1)) +
   stat_boxplot(geom = "boxplot", alpha = 0.5, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square") +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 1, lineend = "square") +
+  scale_color_manual(values = viridis::viridis(2)) +
+  scale_fill_manual(values = viridis::viridis(2)) +
   facet_wrap(group ~ group1, scales = "free", ncol = 2) +
+  Yuri_theme +
   theme(legend.position = "none")
 ```
 
@@ -357,7 +372,10 @@ q整理 %>%
   ggplot(., aes(x = group, y = value, color = group1, fill = group1)) +
   stat_boxplot(geom = "boxplot", alpha = 0.5, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square") +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 1, lineend = "square") +
+  scale_color_manual(values = viridis::viridis(2)) +
+  scale_fill_manual(values = viridis::viridis(2)) +
   facet_grid(group ~ group1, scales = "free") +
+  Yuri_theme +
   theme(legend.position = "none")
 ```
 
@@ -390,19 +408,78 @@ q %>%
 dt <- import("D:/desktop/book/tidybook/data/test.xlsx")
 dt %>%
   ggplot(., aes(x = group, y = value, color = group, fill = group)) +
-  geom_col()
+  geom_col() +
+  Yuri_theme
 
 dt %>%
   ggplot(., aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = cols) +
-  scale_fill_manual(values = fills)
+  scale_fill_manual(values = fills) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::magma(24)) +
+  scale_fill_manual(values = viridis::magma(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::inferno(24)) +
+  scale_fill_manual(values = viridis::inferno(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::plasma(24)) +
+  scale_fill_manual(values = viridis::plasma(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::viridis(24)) +
+  scale_fill_manual(values = viridis::viridis(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::cividis(24)) +
+  scale_fill_manual(values = viridis::cividis(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::rocket(24)) +
+  scale_fill_manual(values = viridis::rocket(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::mako(24)) +
+  scale_fill_manual(values = viridis::mako(24)) +
+  Yuri_theme
+
+dt %>%
+  ggplot(., aes(x = group, y = value, color = group, fill = group)) +
+  geom_col() +
+  scale_color_manual(values = viridis::turbo(24)) +
+  scale_fill_manual(values = viridis::turbo(24)) +
+  Yuri_theme
 
 dt %>%
   ggplot(., aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_taylor(palette = "lover") +
-  scale_fill_taylor(palette = "lover")
+  scale_fill_taylor(palette = "lover") +
+  Yuri_theme
 ```
 
 ## 原点`expand_limits(x = c(, ), y = c(, ), fill = seq(, , by = ))`
@@ -484,8 +561,10 @@ import("D:/desktop/book/tidybook/data/2020年全球癌症诊断数目最多的�
   ggplot(., aes(x = group, y = value, color = group, fill = group)) +
   geom_segment(aes(x = reorder(group, value), xend = reorder(group, value), y = 0, yend = value), size = 2, alpha = 0.5, lineend = "square") +
   geom_point(aes(size = value), shape = 21, stroke = 1) +
-  scale_color_manual(values = cols) +
-  scale_fill_manual(values = fills) +
+  # scale_color_manual(values = cols) +
+  # scale_fill_manual(values = fills) +
+  scale_color_manual(values = viridis::viridis(10)) +
+  scale_fill_manual(values = viridis::viridis(10)) +
   coord_flip() +
   Yuri_theme +
   theme(legend.position = "none")

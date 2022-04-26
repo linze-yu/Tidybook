@@ -1,0 +1,76 @@
+---
+title: "并行计算"
+author: "Linze Yu"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute:
+    self_contained: TRUE
+    default_style: "light"
+    downcute_theme: "default"
+    fig_width: 7
+    fig_height: 5
+    use_bookdown: TRUE
+    gallery: TRUE
+    lightbox: TRUE
+    highlight: tango
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, 代码全局设置, echo = F}
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 1200, collapse = F, fig.align = "left", dev = "png", cache = T)
+# , eval = F代码显示不运行
+# , include = F代码运行, 不显示代码和结果
+# , echo = T 显示代码块
+# , prompt = T使用>开始代码
+# , comment = ""结果不使用##
+# , collapse = T#代码合并结果
+# , out.width/out.height = 0.8缩放
+# , fig.align = "left","center","right"对齐方式
+# , dev = "pdf","png","svg","jpeg"记录设备
+# , cache = T
+```
+
+## 加载包
+```{r 加载包}
+library("YuriR") #
+```
+
+# purrr+furrr
+## 批量导入
+```{r}
+files <- list.files(
+  "D:/desktop/book/tidybook/data/批量导入",
+  pattern = "xlsx",
+  full.names = T, # 是否带路径
+  recursive = F, # 递归
+)
+files
+```
+
+```{r}
+future_map_dfr(files, import) -> data
+data %>%
+  dim()
+```
+
+```{r}
+
+```
+
+## 批量绘图
+```{r}
+plot <- function(x) {
+  data %>%
+    ggplot(aes(.data[[x]], Sepal.Length, color = Species, fill = Species)) +
+    geom_point(size = 3, shape = 21, stroke = 1, fill = NA) +
+    scale_color_manual(values = cols) +
+    scale_fill_manual(values = fills) +
+    Yuri_theme
+}
+
+columns <- names(data)[2:4] # 要绘制的多个列名
+ps <- future_map(columns, plot)
+ps
+```
