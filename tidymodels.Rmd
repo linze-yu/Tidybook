@@ -177,8 +177,44 @@ predict(f, newx = x[2:5, ], type = "response") # 交叉验证
 cvfit <- cv.glmnet(x, y)
 plot(cvfit)
 ```
-
 两条虚线,一个是均方误差最小时的λ值,一个是距离均方误差最小时一个标准误的λ值
+
+### 提取
+```{r}
+tidy_df <- tidy(f)
+tidy_cvdf <- tidy(cvfit)
+```
+
+```{r}
+ggplot(tidy_df, aes(step, estimate, group = term, color = term)) +
+  geom_line(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  labs(y = "Coefficients") +
+  scale_color_manual(values = cols) + # viridis::viridis(10)
+  scale_fill_manual(values = fills) + # viridis::viridis(10)
+  Yuri_theme
+```
+
+```{r}
+ggplot(tidy_df, aes(lambda, estimate, group = term, color = term)) +
+  geom_line(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  scale_x_log10() +
+  labs(x = "Log Lambda", y = "Coefficients") +
+  scale_color_manual(values = cols) + # viridis::viridis(10)
+  scale_fill_manual(values = fills) + # viridis::viridis(10)
+  Yuri_theme
+```
+
+```{r}
+ggplot() +
+  geom_point(data = tidy_cvdf, aes(lambda, estimate)) +
+  geom_errorbar(data = tidy_cvdf, aes(x = lambda, ymin = conf.low, ymax = conf.high)) +
+  scale_x_log10() +
+  labs(x = "Log Lambda", y = "Coefficients") +
+  Yuri_theme
+```
+
 ```{r}
 tidy(cvfit)
 cvfit$lambda.min %>% # 求出最小值

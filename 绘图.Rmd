@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png")
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -47,10 +47,12 @@ library("tayloRswift") #
 import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") -> q
 ```
 
+# ggplot2基本结构
+
 |图层|ggplot2结构|
 |-:|:-|
 |框架|`ggplot(data =, aes(x =, y =, color =, fill =, ...))+`| 
-|美学外绘图图层(geom/stat)|`geom_XXX/stat_XXX(aes(x =, y = ), size =, color =, fill =, stroke =, alpha =, ...)+`|
+|美学外图层(geom/stat)|`geom_XXX/stat_XXX(aes(x =, y = ), size =, color =, fill =, stroke =, alpha =, ...)+`|
 |美学内图层(geom/stat)|`geom_XXX/stat_XXX(aes(x =, y =, size =, color =, fill =, ...), stroke =, alpha =, ...)+`|
 |其他包图层|`::`|
 |离散颜色变量图层|`scale_color_manual(values = cols)+`|
@@ -63,9 +65,83 @@ import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") -> q
 |总主题图层|`theme+`|
 |个性化主题图层|`theme()`|
 
-# 基础绘图
-, fig.width = 5, fig.height = 7
+## 绘图框架
+```{r}
+p框架 <- ggplot(data = q, aes(x = group1, y = CO2, color = group1, fill = group1))
+p框架
+```
 
+## 美学外图层
+```{r}
+p美学外图层 <- p框架 +
+  stat_boxplot(aes(x = group1, y = CO2), geom = "errorbar", color = 1)
+p美学外图层
+```
+
+## 美学内图层
+```{r}
+p美学内图层 <- p美学外图层 +
+  stat_boxplot(aes(x = group1, y = CO2, color = group1, fill = group1), geom = "boxplot", alpha = 0.5)
+p美学内图层
+```
+
+## 其他包图层
+```{r}
+p其他包图层 <- p美学内图层 +
+  ggbeeswarm::geom_beeswarm(cex = 4, priority = "density", size = 5, shape = 21, alpha = 0.3, stroke = 2, method = "swarm", corral = "gutter")
+p其他包图层
+```
+
+## 离散颜色变量图层
+```{r}
+p离散颜色变量图层 <- p其他包图层 +
+  scale_color_manual(values = cols)
+p离散颜色变量图层
+```
+
+## 离散填充变量图层
+```{r}
+p离散填充变量图层 <- p离散颜色变量图层 +
+  scale_fill_manual(values = fills)
+p离散填充变量图层
+```
+
+## 轴范围
+```{r}
+p轴范围 <- p离散填充变量图层 +
+  expand_limits(y = c(20, 120))
+p轴范围
+```
+
+## 刻线
+```{r}
+p刻线 <- p轴范围 +
+  scale_y_continuous(breaks = seq(0, 200, by = 20), minor_breaks = seq(0, 200, by = 10))
+p刻线
+```
+
+## 文字图层
+```{r}
+p文字图层 <- p刻线 +
+  labs(x = "x轴", y = "y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签")
+p文字图层
+```
+
+## 总主题图层
+```{r}
+p总主题图层 <- p文字图层 +
+  Yuri_theme
+p总主题图层
+```
+
+## 个性化主题图层
+```{r}
+p个性化主题图层 <- p总主题图层 +
+  theme(legend.position = "none")
+p个性化主题图层
+```
+
+# 基础绘图               
 ## 空白 `geom_blank()`
 ```{r, fig.width = 5, fig.height = 7}
 p空白 <- ggplot(data = q, aes(x = pH, y = CO2), ) +

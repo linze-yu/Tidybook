@@ -53,6 +53,159 @@ library("ggpointdensity") # 散点图和二维密度图之间的交叉
 
 ```{r}
 grViz("
+      digraph {# node definitions with substituted label text
+      #graph [rankdir = LR]
+      node [
+      #节点属性
+      color = black,#边框颜色
+      fillcolor = white,#填充颜色
+      fontcolor = black,#字体颜色
+      alpha = 0,#透明度
+      shape = rectangle,#形状
+#oval,椭圆;diamond,菱形;egg,卵圆;plaintext,文字;
+#point,原点;rectangle,矩形;triangle,三角形;square,矩形
+      #style = ,#风格
+      #sides = ,#边
+      #peripheries = ,#边缘
+      #fixedsize = ,#固定大小
+      #height = ,#高度
+      #width = ,#宽度
+      #distortion = ,#变形
+      penwidth = 1,#线粗
+      #x = ,#
+      #y = ,#
+      #tooltip = ,#工具提示
+      fontname = times,#SourceHanSansCN
+      #fontsize = ,#字体大小
+      #icon = ,#图标
+      ]
+
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      tab4 [label = '@@4']
+      tab5 [label = '@@5']
+      # edge definitions with the node IDs
+      edge [
+      #边缘属性
+      #arrowsize = ,#箭头大小
+      arrowhead = curve,
+#normal,三角箭头;box,方块;crow,反向箭头;curve,圆形箭头;
+#diamond,菱形;dot,圆点;inv,反向三角;tee,长方形;vee,箭头;none,无
+      arrowtail = none,#箭头箭尾
+      #dir = ,#
+      color = red,#箭头颜色
+      alpha = 1,#透明度
+      #headport = ,#
+      #tailport = ,#
+      fontname  = times,#字体
+      #fontsize = ,#字体大小
+      #fontcolor = red,#字体颜色
+      penwidth = 1,#箭头粗细
+      #minlen = ,#
+      #tooltip = ,#工具提示
+      ]
+      tab1 -> tab2 -> tab3 -> tab4 -> tab5;
+      }
+      [1]: 'Questionnaire sent to n = 1000 participants'
+      [2]: 'Participants responded to questionnaire n = 850'
+      [3]: 'Participants came to clinic for evaluation n = 700'
+      [4]: 'Participants eligible for the study n = 600'
+      [5]: 'Study sample n = 600'
+      ")
+```
+
+```{r}
+grViz("
+      digraph {# node definitions with substituted label text
+      graph [rankdir = LR]
+      node [
+      #节点属性
+      color = black,#边框颜色
+      fillcolor = white,#填充颜色
+      fontcolor = black,#字体颜色
+      alpha = 0,#透明度
+      shape = circle,#形状
+#oval,椭圆;diamond,菱形;egg,卵圆;plaintext,文字;
+#point,原点;rectangle,矩形;triangle,三角形;square,矩形;circle,圆圈
+      #style = ,#风格
+      #sides = ,#边
+      #peripheries = ,#边缘
+      fixedsize = 0.5,#固定大小
+      height = 0.5,#高度
+      width = 0.5,#宽度
+      #distortion = ,#变形
+      penwidth = 1,#线粗
+      #x = ,#
+      #y = ,#
+      #tooltip = ,#工具提示
+      fontname = times,#SourceHanSansCN
+      #fontsize = ,#字体大小
+      #icon = ,#图标
+      ]
+      1 [label = '@@1']
+      2 [label = '@@2']
+      3 [label = '@@3']
+      4 [label = '@@4']
+      5 [label = '@@5']
+      6 [label = '@@6']
+      7 [label = '@@7']
+      8 [label = '@@8']
+      9 [label = '@@9']
+      10 [label = '@@10']
+      11 [label = '@@11']
+      12 [label = '@@12']
+      13 [label = '@@13']
+      # edge definitions with the node IDs
+      edge [
+      #边缘属性
+      #arrowsize = ,#箭头大小
+      arrowhead = none,
+#normal,三角箭头;box,方块;crow,反向箭头;curve,圆形箭头;
+#diamond,菱形;dot,圆点;inv,反向三角;tee,长方形;vee,箭头;none,无
+      arrowtail = none,#箭头箭尾
+      #dir = ,#
+      color = red,#箭头颜色
+      alpha = 1,#透明度
+      #headport = ,#
+      #tailport = ,#
+      fontname  = times,#字体
+      #fontsize = ,#字体大小
+      #fontcolor = red,#字体颜色
+      penwidth = 1,#箭头粗细
+      #minlen = ,#
+      #tooltip = ,#工具提示
+      ]
+      1 -> {4,5,6,7}
+      2 -> {4,5,6,7}
+      3 -> {4,5,6,7}
+      4 -> {8,9,10,11}
+      5 -> {8,9,10,11}
+      6 -> {8,9,10,11}
+      7 -> {8,9,10,11}
+      8->{12,13}
+      9->{12,13}
+      10->{12,13}
+      11->{12,13};
+      }
+      [1]: ''
+      [2]: ''
+      [3]: ''
+      [4]: ''
+      [5]: ''
+      [6]: ''
+      [7]: ''
+      [8]: ''
+      [9]: ''
+      [10]: ''
+      [11]: ''
+      [12]: ''
+      [13]: ''
+      ")
+```
+
+```{r}
+grViz("
 digraph a_nice_graph {
 
 # node definitions with substituted label text
@@ -72,7 +225,7 @@ l [label = '@@4-11']
 m [label = '@@5-12']
 
 # edge definitions with the node IDs
-a -> {b c d e f g h i j}->{k l m}
+a -> {b c d e f g h i j} -> {k l m}
 }
 
 [1]: 'top'
@@ -252,27 +405,6 @@ grViz("
       tab3 [label = '@@3']
       tab4 [label = '@@4']
       tab5 [label = '@@5']
-      # edge definitions with the node IDs
-      tab1 -> tab2 -> tab3 -> tab4 -> tab5;
-      }
-      [1]: 'Questionnaire sent to n=1000 participants'
-      [2]: 'Participants responded to questionnaire n=850'
-      [3]: 'Participants came to clinic for evaluation n=700'
-      [4]: 'Participants eligible for the study n=600'
-      [5]: 'Study sample n=600'
-      ")
-```
-
-```{r}
-grViz("
-      digraph flowchart {
-      # node definitions with substituted label text
-      node [fontname = Helvetica, shape = rectangle]
-      tab1 [label = '@@1']
-      tab2 [label = '@@2']
-      tab3 [label = '@@3']
-      tab4 [label = '@@4']
-      tab5 [label = '@@5']
       tab6 [label = '@@6']
       tab7 [label = '@@7']
       tab8 [label = '@@8']
@@ -283,14 +415,14 @@ grViz("
       tab6 -> tab7 -> tab8;
       tab5 -> tab7;
       }
-      [1]: 'Questionnaire sent to n=1000 participants'
-      [2]: 'Participants came to clinic for evaluation n=700'
-      [3]: 'Participants non-eligible for the study n=100'
-      [4]: 'Participants eligible for the study n=600'
-      [5]: 'Study sample n=600'
-      [6]: 'sada non-eligible for the study n=100'
-      [7]: 'Participants asda for the study n=600'
-      [8]: 'Study sample n=as'
+      [1]: 'Questionnaire sent to n = 1000 participants'
+      [2]: 'Participants came to clinic for evaluation n = 700'
+      [3]: 'Participants non-eligible for the study n = 100'
+      [4]: 'Participants eligible for the study n = 600'
+      [5]: 'Study sample n = 600'
+      [6]: 'sada non-eligible for the study n = 100'
+      [7]: 'Participants asda for the study n = 600'
+      [8]: 'Study sample n = as'
       ")
 ```
 
@@ -577,8 +709,8 @@ q %>%
 ```
 
 ### 其他代码
-- `geom_xsidefreqpoly(aes(y=after_stat(count)), binwidth = 1)+` 
-- `geom_ysidefreqpoly(aes(x=after_stat(count)), binwidth = 1)+`
+- `geom_xsidefreqpoly(aes(y = after_stat(count)), binwidth = 1)+` 
+- `geom_ysidefreqpoly(aes(x = after_stat(count)), binwidth = 1)+`
 
 - `geom_xsidecol()+`
 - `geom_ysidecol()+`
