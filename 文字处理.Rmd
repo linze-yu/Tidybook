@@ -96,7 +96,7 @@ top1 %>%
 set.seed(2022)
 top1 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data1, size = N, color = N)) +
+  ggplot(aes(label = data1, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
@@ -162,7 +162,7 @@ top2 %>%
 set.seed(2022)
 top2 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data2, size = N, color = N)) +
+  ggplot(aes(label = data2, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
@@ -228,7 +228,7 @@ top3 %>%
 set.seed(2022)
 top3 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data3, size = N, color = N)) +
+  ggplot(aes(label = data3, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
@@ -294,7 +294,7 @@ top4 %>%
 set.seed(2022)
 top4 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data4, size = N, color = N)) +
+  ggplot(aes(label = data4, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
@@ -360,7 +360,7 @@ top5 %>%
 set.seed(2022)
 top5 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data5, size = N, color = N)) +
+  ggplot(aes(label = data5, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
@@ -426,7 +426,7 @@ top6 %>%
 set.seed(2022)
 top6 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data6, size = N, color = N)) +
+  ggplot(aes(label = data6, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 25) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +
@@ -492,7 +492,7 @@ top7 %>%
 set.seed(2022)
 top7 %>%
   mutate_vars(N, scale) %>%
-  ggplot(., aes(label = data7, size = N, color = N)) +
+  ggplot(aes(label = data7, size = N, color = N)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 20) +
   scale_color_gradient(low = "#696AAD", high = "#BD3645") +

@@ -440,7 +440,7 @@ data %>%
 ## before
 ```{r}
 data %>%
-  ggplot(., aes(x = drug, y = before)) +
+  ggplot(aes(x = drug, y = before)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
   expand_limits(y = c(7, 12)) -> before
@@ -449,7 +449,7 @@ data %>%
 ## after
 ```{r}
 data %>%
-  ggplot(., aes(x = drug, y = after)) +
+  ggplot(aes(x = drug, y = after)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
   expand_limits(y = c(7, 9)) -> after
@@ -461,7 +461,7 @@ databa <- longer_dt(data, n, drug, name = "group", value = "value")
 databa %>%
   slice_dt(1:3)
 databa %>%
-  ggplot(., aes(x = group, y = value)) +
+  ggplot(aes(x = group, y = value)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
   geom_signif(
@@ -485,7 +485,7 @@ databa %>%
 ## 综合
 ```{r}
 databa %>%
-  ggplot(., aes(x = group, y = value, color = drug)) +
+  ggplot(aes(x = group, y = value, color = drug)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
   geom_signif(
@@ -520,7 +520,7 @@ lay_grid(list(before, dif, after, sum), lay)
 ## 折线直方图
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, color = group1, fill = group1)) +
+  ggplot(aes(x = CO2, color = group1, fill = group1)) +
   geom_freqpoly(size = 1, alpha = 1, stat = "bin") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -532,7 +532,7 @@ q %>%
 ## 点直方图
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, color = group1, fill = group1)) +
+  ggplot(aes(x = CO2, color = group1, fill = group1)) +
   geom_dotplot(size = 1, alpha = 0.5, shape = 21, stroke = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -543,7 +543,7 @@ q %>%
 ## 拟合分位数的回归线
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2, color = group1, fill = group1)) +
+  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
   geom_quantile(size = 1, linetype = 1, alpha = 1, stat = "quantile") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -555,7 +555,7 @@ q %>%
 ## 面积图
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2, color = group1, fill = group1)) +
+  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
   geom_area(size = 1, linetype = 1, alpha = 0.5, stat = "identity") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -567,7 +567,7 @@ q %>%
 ## 阶梯图
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2, color = group1, fill = group1)) +
+  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
   geom_step(size = 1, linetype = 1, alpha = 1, stat = "identity") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -579,7 +579,7 @@ q %>%
 ## 二维等高线颜色密度图
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2)) +
+  ggplot(aes(x = CO2, y = O2)) +
   Yuri_theme +
   geom_density_2d_filled(bins = 20, alpha = 1, show.legend = F) +
   coord_fixed(ratio = 20 / 40)
@@ -589,7 +589,7 @@ q %>%
 (hexbin)
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2)) +
+  ggplot(aes(x = CO2, y = O2)) +
   Yuri_theme +
   geom_hex(bins = 20, alpha = 1, color = "#FFFFFF", size = 0.5) +
   theme(legend.position = (c(0.95, 0.95))) +
@@ -600,7 +600,7 @@ q %>%
 (ggpointdensity)
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2)) +
+  ggplot(aes(x = CO2, y = O2)) +
   Yuri_theme +
   geom_pointdensity(method = "auto", adjust = 4, alpha = 1, size = 5, shape = 16, stroke = 1) + # "default""kde2d"
   theme(legend.position = (c(0.95, 0.95))) +
@@ -612,7 +612,7 @@ q %>%
 ```{r}
 import("D:/desktop/book/tidybook/data/4.xlsx") %>%
   mutate_dt(n = 1) %>%
-  ggplot(., aes(x = Q, y = n)) +
+  ggplot(aes(x = Q, y = n)) +
   geom_col(aes(fill = Q), color = 1, alpha = 0.5) +
   Yuri_theme +
   theme(legend.position = "none") -> stat
@@ -622,7 +622,7 @@ import("D:/desktop/book/tidybook/data/4.xlsx") %>%
 ```{r}
 import("D:/desktop/book/tidybook/data/4.xlsx") %>%
   summarise_dt(n = .N, by = Q) %>%
-  ggplot(., aes(x = Q, y = n)) +
+  ggplot(aes(x = Q, y = n)) +
   geom_col(aes(fill = Q), color = 1, alpha = 0.5) +
   Yuri_theme +
   theme(legend.position = "none") -> fst
@@ -675,7 +675,7 @@ lay_grid(list(stat, fst), m)
 set.seed(2022)
 import("D:/desktop/book/tidybook/data/2013-2020年中国总理记者会关键词词频.xlsx") %>%
   mutate_vars(value, scale) %>%
-  ggplot(., aes(label = words, size = value, color = value)) +
+  ggplot(aes(label = words, size = value, color = value)) +
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 15) +
   scale_color_gradient(low = "#F8CDCD", high = "#696AAD") +
@@ -687,7 +687,7 @@ import("D:/desktop/book/tidybook/data/2013-2020年中国总理记者会关键词
 (ggside)
 ```{r}
 q %>%
-  ggplot(., aes(x = CO2, y = O2, color = group1, fill = group1)) +
+  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
   geom_point(size = 5, shape = 21, alpha = 0.7, stroke = 1) +
   scale_x_continuous(breaks = seq(0, 250, by = 20), minor_breaks = seq(0, 250, by = 10)) +
   scale_y_continuous(breaks = seq(0, 250, by = 20), minor_breaks = seq(0, 250, by = 10)) +
@@ -734,7 +734,7 @@ q %>%
 ```{r}
 import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") %>%
   longer_dt(n, drug, name = "group", value = "value") %>%
-  ggplot(., aes(x = group, y = value, color = drug, fill = drug)) +
+  ggplot(aes(x = group, y = value, color = drug, fill = drug)) +
   geom_beeswarm(cex = 4, priority = "density", size = 5, shape = 21, alpha = 0.5, stroke = 1, method = "swarm", corral = "gutter") +
   # priority = "descending""density""random""none"
   # method = "compactswarm""hex""square""center"
@@ -750,7 +750,7 @@ import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") %>%
 ```{r}
 import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") %>%
   longer_dt(n, drug, name = "group", value = "value") %>%
-  ggplot(., aes(x = group, y = value, color = group)) +
+  ggplot(aes(x = group, y = value, color = group)) +
   geom_half_boxplot(alpha = 0.8, size = 1, position = position_nudge(x = 0, y = 0), side = "l", fill = NA, center = TRUE) +
   geom_half_violin(alpha = 0.8, size = 1, position = position_nudge(x = 0, y = 0), side = "r", fill = NA, trim = FALSE) +
   geom_half_point(shape = 21, stroke = 1, size = 2, side = "l", range_scale = 0.5) +
@@ -765,7 +765,7 @@ import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") %>%
 import("D:/desktop/book/tidybook/data/break.xlsx") %>%
   longer_dt(n, name = "group", value = "value") %>%
   summarize_dt(n = .N, sd = sd(value), mean = mean(value), by = group) %>%
-  ggplot(., aes(x = group, y = mean, color = group, fill = group)) +
+  ggplot(aes(x = group, y = mean, color = group, fill = group)) +
   geom_col(alpha = 0.5, width = 0.5, size = 1, color = NA, lineend = "square") +
   geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), width = 0.25, size = 1, lineend = "square") +
   scale_color_manual(values = cols) +
@@ -833,10 +833,10 @@ ggsurvplot(
 # Violin+SEM+line
 ```{r, echo = F}
 import("D:/desktop/book/tidybook/data/case_2/4.xlsx") %>%
-  longer_dt(., name = "group", value = "value") -> c
+  longer_dt(name = "group", value = "value") -> c
 c[, c("mean", "sd", "n") := .(mean(value), sd(value), .N), by = group]
 c %>%
-  ggplot(., aes(x = group, y = mean)) +
+  ggplot(aes(x = group, y = mean)) +
   geom_violin(aes(x = group, y = value), color = NA, fill = "#696AAD", alpha = 0.3, width = 0.5) +
   geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), color = "#696AAD", width = 0.2, size = 1) +
   geom_segment(x = 1, y = 0.434, xend = 2, yend = 0.785, color = "#696AAD", size = 1) +
@@ -881,7 +881,7 @@ data3 %>%
   cbind(data4) -> data5
 data5 %>%
   longer_dt(threshold, name = "group", value = "value") %>%
-  ggplot(., aes(x = threshold, y = value, color = group)) +
+  ggplot(aes(x = threshold, y = value, color = group)) +
   geom_line(size = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
