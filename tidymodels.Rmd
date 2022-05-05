@@ -35,25 +35,339 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 ## 加载包
 ```{r 加载包}
 library("YuriR") #
+library("tidymodels") #
+library("keras")
 # library("mlr3verse") #
 
-library("tidymodels") #
+
 library("broom.mixed") # 用于将贝叶斯模型转换为整洁的tibbles
 library("dotwhisker") # 用于可视化回归结果
-
 # remotes::install_github("fsolt/dotwhisker")
-library("rstanarm")
+
+library("nycflights13")
+library("skimr")
+
+library("ranger")
+library("modeldata")
+
+library("randomForest") # 随机森林
+# library("glmnet") #
+library("ranger") #
+
+library("rstanarm") # 用于贝叶斯应用回归建模
 library("MASS") #
 library("nnet") #
 # library("survival")#
 library("AER") #
 # library("glmnet") #
-library("randomForest") # 随机森林
+
 library("caret")
 library("pROC")
 ```
 
+# tidymodels
+rsample:数据划分和重抽样
+recipes:用于特征工程的数据预处理
+parsnip:对一系列模型进行建模的统一接口
+broom:将得到的模型信息转换成整洁的格式
+tune:调整超参数，对预处理过程进行优化
+dials:创建,管理超参数和参数格点
+yardstick:使用性能指标度量模型的有效性
+workflows:将模型的预处理,建模和后处理整合在一起
+
+infer:统计推断
+corrr:整洁的相关矩阵
+discrim:判别分析
+bayesmodels:贝叶斯模型的Tidymodels扩展
+rstanarm:R包用于贝叶斯应用回归建模
+
+|parsnip函数|模型/算法|引擎|
+|:-:|:-:|:-:|
+|`boost_tree()`|boost树|`xgboost`(默认),`C5.0`,`spark`|
+|`decision_tree()`|决策树|`rpart`(默认),`C5.0`(只用于聚类),`spark`|
+|`linear_reg()`|线性回归|`lm`(默认),`glmnet`,`stan`,`spark`,`keras`|
+|`logistic_reg()`|逻辑回归|`glm`(默认),`glmnet`,`stan`,`spark`,`keras`|
+|`mars()`|多元适应性回归样条|`earth`|
+|`mlp()`|单层神经网络|`nnet`(默认),`keras`|
+|`multinom_reg()`|多项式回归|`glmnet`(默认),`nnet`,`stan`,`keras`|
+|`nearest_neighbor()`|K近邻聚类|`kknn`|
+|`rand_forest()`|随机森林|`ranger`(默认),`randomForest`,`spark`|
+|`surv_reg()`|生存分析|`survival`(默认),`flexsurv`|
+|`svm_poly()`|多项式支持向量机|`kernlab`|
+|`svm_rbf()`|径向基函数支持向量机|`kernlab`(默认),`liquidSVM`|
+
 # learn
+## 建立模型1---海胆
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/urchins.xlsx") %>%
+  setNames(c("food_regime", "initial_volume", "width")) %>%
+  mutate(food_regime = factor(food_regime, levels = c("Initial", "Low", "High"))) -> urchins
+```
+
+```{r}
+urchins %>%
+  ggplot(aes(x = initial_volume, y = width, col = food_regime, fill = food_regime)) +
+  geom_point(shape = 21, size = 2, stroke = 1) +
+  geom_smooth(method = lm, se = F) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  Yuri_theme +
+  theme(legend.position = (c(0.2, 0.95)))
+```
+
+### 建立并拟合一个模型
+(parsnip)  
+一个标准的双因素方差分析(ANOVA)模型对这个数据集是有意义的,因为我们有一个连续的预测因子和一个分类预测因子。  
+```{r}
+lm_mod <- linear_reg() %>%
+  set_engine("lm") # 模型引擎
+
+lm_fit <- lm_mod %>%
+  fit(width ~ initial_volume * food_regime, data = urchins)
+lm_fit
+
+tidy(lm_fit)
+```
+
+点须图  
+(dotwhisker)
+```{r}
+tidy(lm_fit) %>%
+  dwplot(
+    dot_args = list(size = 2, color = "#FC766A", shape = 21, stroke = 1),
+    whisker_args = list(size = 1, color = "#696AAD"),
+    vline = geom_vline(size = 1, xintercept = 0, colour = "#96999C", linetype = 2)
+  ) +
+  Yuri_theme
+```
+
+预测-预测值的类型是标准化的
+```{r}
+new_points <- expand.grid(
+  initial_volume = 20,
+  food_regime = c("Initial", "Low", "High")
+)
+new_points
+```
+
+```{r}
+mean_pred <- predict(lm_fit, new_data = new_points)
+mean_pred
+```
+
+```{r}
+conf_int_pred <- predict(lm_fit,
+  new_data = new_points,
+  type = "conf_int"
+)
+conf_int_pred
+```
+
+```{r}
+plot_data <-
+  new_points %>%
+  bind_cols(mean_pred) %>%
+  bind_cols(conf_int_pred)
+```
+
+```{r}
+ggplot(plot_data, aes(x = food_regime)) +
+  geom_point(aes(y = .pred), size = 3, shape = 21, stroke = 1, color = "#FC766A") +
+  geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), size = 1, width = .2, color = "#696AAD") +
+  labs(y = "urchin size") +
+  Yuri_theme
+```
+
+使用不同的引擎建模
+(rstanarm)
+```{r}
+prior_dist <- rstanarm::student_t(df = 1)
+
+set.seed(2022)
+# 制作模型
+bayes_mod <- linear_reg() %>%
+  set_engine("stan",
+    prior_intercept = prior_dist,
+    prior = prior_dist
+  )
+```
+
+```{r}
+# 训练模型
+bayes_fit <-
+  bayes_mod %>%
+  fit(width ~ initial_volume * food_regime, data = urchins)
+
+print(bayes_fit, digits = 5)
+tidy(bayes_fit, conf.int = TRUE)
+```
+
+```{r}
+bayes_plot_data <-
+  new_points %>%
+  bind_cols(predict(bayes_fit, new_data = new_points)) %>%
+  bind_cols(predict(bayes_fit, new_data = new_points, type = "conf_int"))
+
+ggplot(bayes_plot_data, aes(x = food_regime)) +
+  geom_point(aes(y = .pred), size = 3, shape = 21, stroke = 1, color = "#FC766A") +
+  geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), size = 1, width = .2, color = "#696AAD") +
+  labs(y = "urchin size", title = "Bayesian model with t(1) prior distribution") +
+  Yuri_theme
+```
+
+## 建立模型2---纽约市的航班数据
+(parsnip)  
+预测飞机是否晚到30分钟以上,这个数据集包含2013年在纽约市附近出发的325,819个航班的信息(csv)
+
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/flight_data.csv") -> flight_data
+
+flight_data %>%
+  count(arr_delay) %>%
+  mutate(prop = n / sum(n))
+```
+
+```{r}
+glimpse(flight_data)
+flight_data %>%
+  skimr::skim(dest, carrier)
+```
+
+### 数据拆分
+```{r}
+set.seed(2022)
+data_split <- initial_split(flight_data, prop = 3 / 4)
+train_data <- training(data_split)
+test_data <- testing(data_split)
+```
+
+### 预处理
+```{r}
+flights_rec <-
+  recipe(arr_delay ~ ., # .使用全部变量
+    data = train_data
+  ) %>%
+  update_role(flight, time_hour, new_role = "ID")
+summary(flights_rec)
+```
+
+### 特征工程
+一周中的一天。
+月份，以及
+该日期是否对应于一个假期。
+
+```{r}
+flights_rec <-
+  recipe(arr_delay ~ ., data = train_data) %>%
+  update_role(flight, time_hour, new_role = "ID") %>%
+  step_date(date, # 相应的星期和月份的日期
+    features = c("dow", "month")
+  ) %>%
+  step_holiday(date, # 表明当前日期是否是一个假期
+    holidays = timeDate::listHolidays("US"),
+    keep_original_cols = F
+  ) %>%
+  step_dummy(all_nominal_predictors()) # 创建虚拟变量
+```
+
+```{r}
+test_data %>%
+  distinct(dest) %>%
+  anti_join(train_data)
+```
+
+```{r}
+flights_rec <-
+  recipe(arr_delay ~ ., data = train_data) %>%
+  update_role(flight, time_hour, new_role = "ID") %>%
+  step_date(date, features = c("dow", "month")) %>%
+  step_holiday(date,
+    holidays = timeDate::listHolidays("US"),
+    keep_original_cols = FALSE
+  ) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_zv(all_predictors())
+```
+
+### 拟合一个模型
+```{r}
+lr_mod <-
+  logistic_reg() %>%
+  set_engine("glm")
+```
+
+```{r}
+flights_wflow <-
+  workflow() %>%
+  add_model(lr_mod) %>%
+  add_recipe(flights_rec)
+
+flights_wflow
+```
+
+```{r}
+flights_fit <-
+  flights_wflow %>%
+  fit(data = train_data)
+```
+
+```{r}
+flights_fit %>%
+  extract_fit_parsnip() %>%
+  tidy()
+```
+
+```{r}
+predict(flights_fit, test_data)
+```
+
+```{r}
+augment(flights_fit, test_data) -> flights_aug
+```
+
+## 建立模型3---cells
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/cells.csv") -> cells
+```
+
+```{r}
+cells %>%
+  count(class) %>%
+  mutate(prop = n / sum(n))
+```
+
+```{r}
+set.seed(2022)
+cell_split <- initial_split(cells %>% select_mix(-c("case")), strata = class)
+```
+
+```{r}
+cell_train <- training(cell_split)
+cell_test <- testing(cell_split)
+
+nrow(cell_train)
+nrow(cell_train) / nrow(cells)
+cell_train %>%
+  count(class) %>%
+  mutate(prop = n / sum(n))
+cell_test %>%
+  count(class) %>%
+  mutate(prop = n / sum(n))
+```
+
+### 建模
+```{r}
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+```
+
+
+
+
+
+
 ## 具有整洁数据原则的相关性和回归基础知识
 (tidymodels)
 
@@ -68,7 +382,7 @@ import("D:/desktop/book/tidybook/data/tidymodels/iris.xlsx") %>%
 
 ```{r}   
 data %>%
-  ggplot( aes(Sepal.Length, Sepal.Width, color = Species)) +
+  ggplot(aes(Sepal.Length, Sepal.Width, color = Species)) +
   geom_point(alpha = 1, size = 3, shape = 21, stroke = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -117,7 +431,7 @@ clusterings
 
 ```{r}
 assignments %>%
-  ggplot( aes(x = Sepal.Length, y = Sepal.Width)) +
+  ggplot(aes(x = Sepal.Length, y = Sepal.Width)) +
   geom_point(aes(color = .cluster), shape = 21, fill = NA, stroke = 0.5) +
   geom_point(data = clusters, size = 10, shape = "*", color = 1) +
   facet_wrap(~k, ncol = 4) +
@@ -128,7 +442,7 @@ assignments %>%
 
 ```{r}
 clusterings %>%
-  ggplot( aes(k, tot.withinss)) +
+  ggplot(aes(k, tot.withinss)) +
   geom_line(size = 2, linetype = 3, color = "#FC766A") +
   geom_point(size = 5, shape = 21, fill = NA, stroke = 2, color = "#34558B") +
   scale_y_continuous(breaks = seq(0, 200, by = 25), minor_breaks = seq(0, 200, by = 5)) +
@@ -147,6 +461,295 @@ data %>%
   geom_point(size = 2, shape = 21, stroke = 1, color = "#34558B") +
   Yuri_theme
 ```
+
+非线性最小二乘法来拟合模型
+```{r}
+nlsfit <- nls(mpg ~ k / wt + b, data = data, start = list(k = 1, b = 0))
+summary(nlsfit)
+tidy(nlsfit)
+data %>%
+  ggplot(aes(x = wt, y = mpg)) +
+  geom_point(size = 2, shape = 21, stroke = 1, color = "#34558B") +
+  geom_line(aes(y = predict(nlsfit)), color = "#FC766A", size = 1, linetype = 3) +
+  Yuri_theme
+```
+自举模型
+```{r}
+set.seed(2022)
+boots <- bootstraps(data, times = 2000, apparent = T)
+boots
+```
+
+```{r}
+fit_nls_on_bootstrap <- function(split) {
+  nls(mpg ~ k / wt + b, analysis(split), start = list(k = 1, b = 0))
+}
+
+boot_models <-
+  boots %>%
+  mutate(
+    model = future_map(splits, fit_nls_on_bootstrap),
+    coef_info = future_map(model, tidy)
+  )
+
+boot_coefs <-
+  boot_models %>%
+  unnest(coef_info)
+boot_coefs
+```
+置信区间
+```{r}
+percentile_intervals <- int_pctl(boot_models, coef_info) # 百分位方法
+percentile_intervals
+```
+
+```{r}
+boot_coefs %>%
+  ggplot(aes(estimate)) +
+  geom_histogram(bins = 30, color = NA, alpha = 0.3, fill = "#00997B") +
+  facet_wrap(~term, scales = "free") +
+  geom_vline(aes(xintercept = .lower), data = percentile_intervals, color = "#34558B") +
+  geom_vline(aes(xintercept = .upper), data = percentile_intervals, color = "#34558B") +
+  Yuri_theme
+```
+
+可能的模型拟合
+```{r}
+boot_aug <-
+  boot_models %>%
+  sample_n(200) %>%
+  mutate(augmented = future_map(model, augment)) %>%
+  unnest(augmented)
+boot_aug
+```
+
+```{r}
+boot_aug %>%
+  ggplot(aes(wt, mpg)) +
+  geom_line(aes(y = .fitted, group = id), alpha = 0.2, color = "#34558B") +
+  geom_point(size = 2, shape = 21, stroke = 1, color = "#BD3645") +
+  Yuri_theme
+```
+
+```{r}
+fit_spline_on_bootstrap <- function(split) {
+  data <- analysis(split)
+  smooth.spline(data$wt, data$mpg, df = 4)
+}
+
+boot_splines <-
+  boots %>%
+  sample_n(200) %>%
+  mutate(
+    spline = future_map(splits, fit_spline_on_bootstrap),
+    aug_train = future_map(spline, augment)
+  )
+
+splines_aug <-
+  boot_splines %>%
+  unnest(aug_train)
+
+ggplot(splines_aug, aes(x, y)) +
+  geom_line(aes(y = .fitted, group = id), alpha = 0.2, color = "#34558B") +
+  geom_point(size = 2, shape = 21, stroke = 1, color = "#BD3645") +
+  Yuri_theme
+```
+
+## 使用重采样和整洁数据的假设检验
+使用灵活函数执行用于统计推断的常见假设检验。
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/gss.xlsx") -> data
+```
+
+指定变量
+```{r}
+data %>%
+  specify(response = age)
+```
+
+```{r}
+data %>%
+  specify(age ~ partyid)
+```
+
+```{r}
+data %>%
+  specify(response = college, success = "degree")
+```
+
+## 执行统计分析-应急表的统计分析
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/ad_data.xlsx") -> ad_data
+ad_data %>%
+  select_mix("Genotype", "Class") %>%
+  as_tibble() -> ad_data
+ad_data
+```
+
+```{r}
+ad_data %>%
+  summarise_dt(n = .N, by = c("Genotype", "Class")) %>%
+  ggplot(aes(x = Genotype, y = n, color = Class, fill = Class)) +
+  geom_col(color = NA, position = position_fill()) +
+  # scale_y_continuous(labels = scales::percent) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  coord_flip() +
+  Yuri_theme
+```
+
+```{r}
+ad_data %>%
+  specify(Genotype ~ Class) %>% # 指定
+  calculate(stat = "Chisq") -> observed_indep_statistic # 计算
+observed_indep_statistic
+```
+
+使用随机化零分布
+```{r}
+ad_data %>%
+  specify(Genotype ~ Class) %>% # 指定
+  hypothesize(null = "independence") %>% # 假设
+  generate(reps = 5000, type = "permute") %>% # 产生
+  calculate(stat = "Chisq") -> null_distribution_simulated # 计算
+null_distribution_simulated
+```
+
+基于理论的方法
+```{r}
+ad_data %>%
+  specify(Genotype ~ Class) %>% # 指定
+  hypothesize(null = "independence") %>% # 假设
+  # 无生成步骤
+  calculate(stat = "Chisq") -> null_distribution_theoretical # 计算
+null_distribution_theoretical
+```
+
+观察分布
+```{r}
+null_distribution_simulated %>%
+  visualize() +
+  shade_p_value(observed_indep_statistic, direction = "greater")
+```
+
+```{r}
+ad_data %>%
+  specify(Genotype ~ Class) %>%
+  hypothesize(null = "independence") %>%
+  visualize(method = "theoretical") +
+  shade_p_value(observed_indep_statistic, direction = "greater")
+```
+
+```{r}
+null_distribution_simulated %>%
+  visualize(method = "both") +
+  shade_p_value(observed_indep_statistic,
+    direction = "greater"
+  )
+```
+
+计算p值
+```{r}
+p_value_independence <- null_distribution_simulated %>%
+  get_p_value(
+    obs_stat = observed_indep_statistic,
+    direction = "greater"
+  )
+p_value_independence
+```
+
+```{r}
+meta_rates <- c(
+  "E2E2" = 0.71, "E2E3" = 11.4, "E2E4" = 2.32,
+  "E3E3" = 61.0, "E3E4" = 22.6, "E4E4" = 2.22
+)
+meta_rates <- meta_rates / sum(meta_rates) # these add up to slightly > 100%
+
+obs_rates <- table(ad_data$Genotype) / nrow(ad_data)
+round(cbind(obs_rates, meta_rates) * 100, 2)
+```
+
+```{r}
+ad_data %>%
+  specify(response = Genotype) %>%
+  hypothesize(null = "point", p = meta_rates) %>%
+  calculate(stat = "Chisq") -> observed_gof_statistic
+```
+
+```{r}
+ad_data %>%
+  specify(response = Genotype) %>%
+  hypothesize(null = "point", p = meta_rates) %>%
+  generate(reps = 5000, type = "simulate") %>%
+  calculate(stat = "Chisq") -> null_distribution_gof
+```
+
+```{r}
+null_distribution_gof %>%
+  visualize() +
+  shade_p_value(observed_gof_statistic,
+    direction = "greater"
+  )
+```
+
+```{r}
+p_value_gof <- null_distribution_gof %>%
+  get_p_value(observed_gof_statistic,
+    direction = "greater"
+  )
+```
+
+```{r}
+chisq_test(ad_data, response = Genotype, p = meta_rates)
+```
+
+
+
+
+## 回归模型有两种方式
+```{r}
+import("D:/desktop/book/tidybook/data/tidymodels/ames.xlsx") -> data
+```
+
+```{r}
+set.seed(2022)
+data_split <- initial_split(data, strata = "Sale_Price", prop = 0.75)
+ames_train <- training(data_split)
+ames_test <- testing(data_split)
+```
+
+```{r}
+rf_defaults <- rand_forest(mode = "regression")
+rf_defaults
+```
+
+```{r}
+preds <- c("Longitude", "Latitude", "Lot_Area", "Neighborhood", "Year_Sold")
+
+rf_xy_fit <-
+  rf_defaults %>%
+  set_engine("ranger") %>%
+  fit_xy(
+    x = ames_train[, preds],
+    y = log10(ames_train$Sale_Price)
+  )
+
+rf_xy_fit
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -358,192 +961,6 @@ Heatmap(m2,
 )
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-# 海胆
-```{r}
-import("D:/desktop/book/tidybook/data/tidymodels/urchins.xlsx") %>%
-  setNames(c("food_regime", "initial_volume", "width")) %>%
-  mutate(food_regime = factor(food_regime, levels = c("Initial", "Low", "High"))) -> urchins
-```
-
-```{r}
-urchins %>%
-  ggplot( aes(x = initial_volume, y = width, col = food_regime, fill = food_regime)) +
-  geom_point(shape = 21, size = 2, stroke = 1) +
-  geom_smooth(method = lm, se = F) +
-  scale_color_manual(values = cols) +
-  scale_fill_manual(values = fills) +
-  Yuri_theme +
-  theme(legend.position = (c(0.2, 0.95)))
-```
-
-(parsnip)
-```{r}
-linear_reg()
-```
-
-```{r}
-linear_reg() %>%
-  set_engine("keras") # 模型引擎
-```
-
-```{r}
-lm_mod <- linear_reg()
-lm_fit <- lm_mod %>%
-  fit(width ~ initial_volume * food_regime, data = urchins)
-lm_fit
-```
-
-```{r}
-tidy(lm_fit)
-```
-
-(dotwhisker)
-```{r}
-tidy(lm_fit) %>%
-  dwplot(
-    dot_args = list(size = 2, color = "#FC766A", shape = 21, stroke = 1),
-    whisker_args = list(size = 1, color = "#696AAD"),
-    vline = geom_vline(size = 1, xintercept = 0, colour = "#96999C", linetype = 2)
-  ) +
-  Yuri_theme
-```
-
-```{r}
-new_points <- expand.grid(
-  initial_volume = 20,
-  food_regime = c("Initial", "Low", "High")
-)
-new_points
-```
-
-```{r}
-mean_pred <- predict(lm_fit, new_data = new_points)
-mean_pred
-```
-
-```{r}
-conf_int_pred <- predict(lm_fit,
-  new_data = new_points,
-  type = "conf_int"
-)
-conf_int_pred
-```
-
-```{r}
-plot_data <-
-  new_points %>%
-  bind_cols(mean_pred) %>%
-  bind_cols(conf_int_pred)
-```
-
-```{r}
-ggplot(plot_data, aes(x = food_regime)) +
-  geom_point(aes(y = .pred)) +
-  geom_errorbar(aes(
-    ymin = .pred_lower,
-    ymax = .pred_upper
-  ),
-  width = .2
-  ) +
-  labs(y = "urchin size")
-```
-
-```{r}
-prior_dist <- rstanarm::student_t(df = 1)
-set.seed(2022)
-bayes_mod <- linear_reg() %>%
-  set_engine("stan",
-    prior_intercept = prior_dist,
-    prior = prior_dist
-  )
-```
-
-```{r}
-bayes_fit <-
-  bayes_mod %>%
-  fit(width ~ initial_volume * food_regime, data = urchins)
-
-print(bayes_fit, digits = 5)
-```
-
-```{r}
-tidy(bayes_fit, conf.int = TRUE)
-```
-
-```{r}
-bayes_plot_data <-
-  new_points %>%
-  bind_cols(predict(bayes_fit, new_data = new_points)) %>%
-  bind_cols(predict(bayes_fit, new_data = new_points, type = "conf_int"))
-
-ggplot(bayes_plot_data, aes(x = food_regime)) +
-  geom_point(aes(y = .pred)) +
-  geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), width = .2) +
-  labs(y = "urchin size") +
-  ggtitle("Bayesian model with t(1) prior distribution")
-```
-
-```{r}
-urchins %>%
-  group_by(food_regime) %>%
-  summarize(med_vol = median(initial_volume))
-```
-
-```{r}
-bayes_mod %>%
-  fit(width ~ initial_volume * food_regime, data = urchins)
-```
-
-```{r}
-ggplot(
-  urchins,
-  aes(initial_volume, width)
-) + # returns a ggplot object
-  geom_jitter() + # same
-  geom_smooth(method = lm, se = FALSE) + # same
-  labs(x = "Volume", y = "Width")
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # mlr3
 ## k近邻算法
 ```{r}
@@ -551,19 +968,19 @@ import("D:/desktop/book/tidybook/data/tidymodels/diabetes.xlsx") %>%
   data.table() -> data
 data
 data %>%
-  ggplot( aes(x = glucose, y = insulin, color = class)) +
+  ggplot(aes(x = glucose, y = insulin, color = class)) +
   geom_point(size = 2, stroke = 1, fill = NA, shape = 21) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   Yuri_theme
 data %>%
-  ggplot( aes(x = sspg, y = insulin, color = class)) +
+  ggplot(aes(x = sspg, y = insulin, color = class)) +
   geom_point(size = 2, stroke = 1, fill = NA, shape = 21) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   Yuri_theme
 data %>%
-  ggplot( aes(x = sspg, y = glucose, color = class)) +
+  ggplot(aes(x = sspg, y = glucose, color = class)) +
   geom_point(size = 2, stroke = 1, fill = NA, shape = 21) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
@@ -598,7 +1015,7 @@ data <- import("D:/desktop/book/tidybook/data/diabetes.xlsx")
 
 ```{r}
 data %>%
-  ggplot( aes(x = Glucose, y = Insulin)) +
+  ggplot(aes(x = Glucose, y = Insulin)) +
   geom_point() +
   stat_smooth() +
   Yuri_theme
@@ -607,7 +1024,7 @@ data %>%
 ```{r}
 data %>%
   slice_dt(Glucose > 0 & Insulin > 0) %>%
-  ggplot( aes(x = Glucose, y = Insulin)) +
+  ggplot(aes(x = Glucose, y = Insulin)) +
   geom_point() +
   stat_smooth() +
   Yuri_theme
@@ -622,7 +1039,7 @@ model
 ```{r}
 data %>%
   slice_dt(Glucose > 0 & Insulin > 0) %>%
-  ggplot( aes(x = Glucose, y = Insulin)) +
+  ggplot(aes(x = Glucose, y = Insulin)) +
   geom_point() +
   stat_smooth(method = lm) +
   Yuri_theme
@@ -707,7 +1124,7 @@ ggplot(testdata, aes(x = rating, y = prob)) +
 
 # 随机森林
 (randomForest)
-```{r}
+``{r}
 set.seed(2022)
 data("iris") -> data
 trainlist <- createDataPartition(iris$Species, p = 0.8, list = F)
@@ -716,10 +1133,9 @@ testset <- iris[-trainlist, ]
 ```
 
 ## 建模
-```{r}
+``{r}
 set.seed(2022)
-rf.train <- randomForest(as.factor(Species) ~ 
-  data=trainset,
+rf.train <- randomForest(as.factor(Species) ~ data = trainset,
   importance = T,
   na.action = na.pass, # 略过缺失值
   ntree = 500
@@ -730,7 +1146,7 @@ rf.train
 ```
 
 ## 预测
-```{r}
+``{r}
 set.seed(2022)
 rf.test <- predict(rf.train, newdata = testset, type = "class")
 rf.cf <- caret::confusionMatrix(as.factor(rf.test), as.factor(testset$Species), )
@@ -739,7 +1155,7 @@ rf.cf
 ```
 
 ## ROC
-```{r}
+``{r}
 rf.test2 <- predict(rf.train, newdata = testset, type = "prob")
 head(rf.test2)
 roc.rf <- multiclass.roc(testset$Species, rf.test2)

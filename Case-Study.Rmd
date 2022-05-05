@@ -43,7 +43,7 @@ library("ggside") # 边际直方图/密度曲线
 ```
 
 # Case 1(prism1.xlsx)
-```{r, fig.width = 7, fig.height = 5, echo = F}
+```{r, fig.width = 7, fig.height = 5}
 import("D:/desktop/book/tidybook/data/prism1.xlsx") %>%
   longer_dt(name = "group", value = "value") %>%
   summarize_dt(n = .N, sd = sd(value), mean = mean(value), by = group) %>%
@@ -70,7 +70,7 @@ theme(
 ```
 
 # Case 2(prism2.xlsx)
-```{r, fig.width = 7, fig.height = 5, echo = F}
+```{r, fig.width = 7, fig.height = 5}
 # col <- c("#BD3645", "#696AAD")
 import("D:/desktop/book/tidybook/data/prism2.xlsx") %>%
   longer_dt(group1, name = "group", value = "value") -> c
@@ -102,7 +102,7 @@ theme(
 ```
 
 # Case 3(prism3.xlsx)
-```{r, fig.width = 5, fig.height = 5, echo = F}
+```{r, fig.width = 5, fig.height = 5}
 import("D:/desktop/book/tidybook/data/prism3.xlsx") %>%
   longer_dt(n, name = "group", value = "value") %>%
   ggplot(aes(x = group, y = value)) +

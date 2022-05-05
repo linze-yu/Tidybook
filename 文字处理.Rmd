@@ -37,464 +37,125 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 library("YuriR") #
 ```
 
-# 2022政府工作报告
+# 批量文字处理
+## 导入文本
 ```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/政府工作报告.txt", encoding = "UTF-8") -> data1
-head(data1)
+setwd("D:/desktop/book/tidybook/data/文字处理")
+Files <- list.files()[c(1:6)]
+Files
+文本 <- list()
+for (i in 1:length(Files)) {
+  文本[[i]] <- readLines(Files[i], encoding = "utf-8") %>% as.character()
+}
+class(文本[[1]])
+```
+
+## 设置分词器
+```{r}
+set.seed(2022)
+分词器 <- list()
+for (i in 1:length(文本)) {
+  分词器[[i]] <- worker(
+    type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
+    dict = DICTPATH, # 系统词典
+    hmm = HMMPATH,
+    user = USERPATH, # 用户词典
+    user_weight = "max", # min,median
+    idf = IDFPATH,
+    stop_word = "D:/desktop/book/Text Mining/stop.txt",
+    write = T,
+    qmax = 20,
+    topn = 5,
+    encoding = "UTF-8",
+    detect = T,
+    symbol = F,
+    # lines = 1e+05, # 读取行数,大文件,实现分次读取
+    output = NULL,
+    bylines = F
+  )
+}
 ```
 
 ## 分词
 ```{r}
-分词器1 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
-```
-
-```{r}
-segment(data1, 分词器1) -> data1
+data <- list()
+for (i in 1:length(文本)) {
+  segment(文本[[i]], 分词器[[i]]) -> data[[i]]
+}
 ```
 
 ## 除去数字
 ```{r}
-data1 <- data1[!grepl("[0-9]", data1)]
+data1 <- list()
+for (i in 1:length(data)) {
+  data1[[i]] <- data[[i]][!grepl("[0-9]", data[[i]])]
+}
 ```
 
 ## 除去单字
 ```{r}
-data1 <- data1[nchar(data1) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data1)
-```
-
-## 提取
-```{r}
-top1 <- sort(table(data1), decreasing = T)[1:100]
-top1 %>%
-  data.table() -> top1
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top1 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data1, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 25) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
-```
-
-# 绿野仙踪
-```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/绿野仙踪.txt", encoding = "UTF-8") -> data2
-head(data2)
-```
-
-## 分词
-```{r}
-分词器2 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
-```
-
-```{r}
-segment(data2, 分词器2) -> data2
-```
-
-## 除去数字
-```{r}
-data2 <- data2[!grepl("[0-9]", data2)]
-```
-
-## 除去单字
-```{r}
-data2 <- data2[nchar(data2) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data2)
+data2 <- list()
+for (i in 1:length(data1)) {
+  data2[[i]] <- data1[[i]][nchar(data1[[i]]) >= 2]
+}
 ```
 
 ## 提取
 ```{r}
-top2 <- sort(table(data2), decreasing = T)[1:100]
-top2 %>%
-  data.table() -> top2
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top2 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data2, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 25) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
-```
-
-# 小王子
-```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/小王子.txt", encoding = "UTF-8") -> data3
-head(data3)
-```
-
-## 分词
-```{r}
-分词器3 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
+top <- list()
+for (i in 1:length(data2)) {
+  top[[i]] <- sort(table(data2[[i]]), decreasing = T) # [1:100]
+}
 ```
 
 ```{r}
-segment(data3, 分词器3) -> data3
+top1 <- list()
+for (i in 1:length(top)) {
+  top[[i]] %>%
+    mutate_vars(N, scale) %>%
+    slice_dt(1:20) -> top1[[i]]
+}
+top1[[1]]
 ```
 
-## 除去数字
+## 合并数据
 ```{r}
-data3 <- data3[!grepl("[0-9]", data3)]
+bind <- list()
+for (i in 1:length(top1)) {
+  top1[[i]] %>%
+    data.table() %>%
+    mutate_dt(year = 0 + i) -> bind[[i]]
+}
+bind[[1]] %>%
+  rbind(bind[[2]]) %>%
+  rbind(bind[[3]]) %>%
+  rbind(bind[[4]]) %>%
+  rbind(bind[[5]]) %>%
+  rbind(bind[[6]]) -> end
 ```
 
-## 除去单字
-```{r}
-data3 <- data3[nchar(data3) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data3)
-```
-
-## 提取
-```{r}
-top3 <- sort(table(data3), decreasing = T)[1:100]
-top3 %>%
-  data.table() -> top3
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top3 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data3, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 25) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
-```
-
-# 盗墓笔记
-```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/盗墓笔记.txt", encoding = "UTF-8") -> data4
-head(data4)
-```
-
-## 分词
-```{r}
-分词器4 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  # lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
-```
-
-```{r}
-segment(data4, 分词器4) -> data4
-```
-
-## 除去数字
-```{r}
-data4 <- data4[!grepl("[0-9]", data4)]
-```
-
-## 除去单字
-```{r}
-data4 <- data4[nchar(data4) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data4)
-```
-
-## 提取
-```{r}
-top4 <- sort(table(data4), decreasing = T)[1:50]
-top4 %>%
-  data.table() -> top4
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top4 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data4, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 25) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
-```
-
-# 冰与火之歌
-```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/冰与火之歌.txt", encoding = "UTF-8") -> data5
-head(data5)
-```
-
-## 分词
-```{r}
-分词器5 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  # lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
-```
-
-```{r}
-segment(data5, 分词器5) -> data5
-```
-
-## 除去数字
-```{r}
-data5 <- data5[!grepl("[0-9]", data5)]
-```
-
-## 除去单字
-```{r}
-data5 <- data5[nchar(data5) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data5)
-```
-
-## 提取
-```{r}
-top5 <- sort(table(data5), decreasing = T)[1:150]
-top5 %>%
-  data.table() -> top5
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top5 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data5, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 25) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
-```
-
-# 苗疆蛊事
-```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/苗疆蛊事.txt", encoding = "UTF-8") -> data6
-head(data6)
-```
-
-## 分词
-```{r}
-分词器6 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  # lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
-```
-
-```{r}
-segment(data6, 分词器6) -> data6
-```
-
-## 除去数字
-```{r}
-data6 <- data6[!grepl("[0-9]", data6)]
-```
-
-## 除去单字
-```{r}
-data6 <- data6[nchar(data6) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data6)
-```
-
-## 提取
-```{r}
-top6 <- sort(table(data6), decreasing = T)[1:100]
-top6 %>%
-  data.table() -> top6
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top6 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data6, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 25) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
-```
-
-# 三体
-```{r}
-readLines("D:/desktop/book/tidybook/data/文字处理/三体.txt", encoding = "UTF-8") -> data7
-head(data7)
-```
-
-## 分词
-```{r}
-分词器7 <- worker(
-  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
-  dict = DICTPATH, # 系统词典
-  hmm = HMMPATH,
-  user = USERPATH, # 用户词典
-  user_weight = "max", # min,median
-  idf = IDFPATH,
-  stop_word = "D:/desktop/book/Text Mining/stop.txt",
-  write = T,
-  qmax = 20,
-  topn = 5,
-  encoding = "UTF-8",
-  detect = T,
-  symbol = F,
-  # lines = 1e+05, # 读取行数,大文件,实现分次读取
-  output = NULL,
-  bylines = F
-)
-```
-
-```{r}
-segment(data7, 分词器7) -> data7
-```
-
-## 除去数字
-```{r}
-data7 <- data7[!grepl("[0-9]", data7)]
-```
-
-## 除去单字
-```{r}
-data7 <- data7[nchar(data7) >= 2]
-```
-
-## 统计频数
-```{r}
-# table(data7)
-```
-
-## 提取
-```{r}
-top7 <- sort(table(data7), decreasing = T)[1:50]
-top7 %>%
-  data.table() -> top7
-```
-
-## 词云
-```{r}
-set.seed(2022)
-top7 %>%
-  mutate_vars(N, scale) %>%
-  ggplot(aes(label = data7, size = N, color = N)) +
-  geom_text_wordcloud(family = "Source Han Sans") +
-  scale_size_area(max_size = 20) +
-  scale_color_gradient(low = "#696AAD", high = "#BD3645") +
-  Yuri_theme # F8CDCD
+```{r, fig.width = 7, fig.height = 7}
+end %>%
+  ggplot(aes(x = reorder(V1, N), y = N, color = V1, fill = V1)) +
+  geom_col(color = NA, alpha = 1) +
+  scale_y_continuous(breaks = seq(0, 200, by = 25), minor_breaks = seq(0, 200, by = 12.5)) +
+  # scale_fill_gradientn(colors = viridis::viridis(500)) +
+  # scale_color_gradientn(colors = viridis::viridis(500)) +
+  scale_color_manual(values = viridis::viridis(101)) +
+  scale_fill_manual(values = viridis::viridis(101)) +
+  # scale_color_manual(values = cols) +
+  # scale_fill_manual(values = fills) +
+  facet_wrap(~year, ncol = 3, scales = "free") +
+  coord_flip() +
+  Yuri_theme +
+  theme(
+    legend.position = "none",
+    axis.line = element_line(size = 0.5),
+    axis.ticks.x = element_line(size = 0.5),
+    axis.ticks.y = element_line(size = 0.5),
+    axis.ticks.length = unit(0.1, "cm"),
+    panel.grid.major.x = element_line(color = "#96999C", size = 0.5, linetype = 3, lineend = "round"),
+    panel.grid.minor.x = element_line(color = "#96999C", size = 0.25, linetype = 3, lineend = "round"),
+  ) +
+  labs(x = "", y = "", title = "词频")
 ```
