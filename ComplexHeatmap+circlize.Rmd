@@ -37,6 +37,8 @@ library("YuriR") #
 library("magick") #
 # library("ComplexHeatmap") #
 # library("circlize") #
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 # 和弦图
@@ -339,7 +341,7 @@ p1 + p2
 ```{r}
 col_fun <- colorRamp2(c(0, 0.5, 1), c("#50B8CB", "#E6EEF1", "#E37538"))
 lgd <- Legend(col_fun = col_fun, title = "图例")
-draw(lgd, x = unit(1, "npc"), y = unit(1, "npc"), just = c("mid","mid"))#"right","left","top","bottom"
+draw(lgd, x = unit(1, "npc"), y = unit(1, "npc"), just = c("mid", "mid")) # "right","left","top","bottom"
 ```
 
 ## 3D

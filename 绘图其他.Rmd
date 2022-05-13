@@ -19,16 +19,16 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 115, collapse = F, fig.align = "left", dev = "png", cache = T)
-# , eval = F代码显示不运行
-# , include = F代码运行, 不显示代码和结果
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+# , eval = F 代码显示不运行
+# , include = F 代码运行, 不显示代码和结果
 # , echo = T 显示代码块
-# , prompt = T使用>开始代码
-# , comment = ""结果不使用##
-# , collapse = T#代码合并结果
-# , out.width/out.height = 0.8缩放
-# , fig.align = "left","center","right"对齐方式
-# , dev = "pdf","png","svg","jpeg"记录设备
+# , prompt = T 使用>开始代码
+# , comment = "" 结果不使用##
+# , collapse = T 代码合并结果
+# , out.width/out.height = 0.8 缩放
+# , fig.align = "left","center","right" 对齐方式
+# , dev = "pdf","png","svg","jpeg" 记录设备
 # , cache = T
 ```
 
@@ -42,21 +42,358 @@ library("ggside") # 边际直方图/密度曲线
 library("hexbin") # 六边形
 library("ggpointdensity") # 散点图和二维密度图之间的交叉
 library("ggraph") # 网络图
+library("sf") # 地图相关
+library("ggrepel") #
 # library("DiagrammeR") # 流程图
 # library("webr") # 饼图+甜甜圈图+旭日图+检验绘图
 # library("ggwordcloud")#词云
 # library("gghalves")#组合
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
+```
+
+# 200d
+```{r}
+import("D:/desktop/book/tidybook/data/200d/工作簿1.xlsx") %>% data.table() -> data
+for (i in 1:nrow(data)) {
+  data %>%
+    select_mix(1) %>%
+    slice_dt(i) %>%
+    str_c("省") -> data[i, 1]
+  data %>%
+    select_mix(2) %>%
+    slice_dt(i) %>%
+    str_c("市") -> data[i, 2]
+}
+data %>%
+  export("D:/desktop/book/tidybook/data/200d/省1.xlsx")
+```
+
+```{r}
+import("D:/desktop/book/tidybook/data/200d/使用.xlsx") %>% data.table() -> data
+setwd("D:/desktop/book/GS(2019)1822号")
+File <- list.files()[c(13, 20, 27, 6)]
+shp2019 <- list()
+for (i in 1:length(File)) {
+  shp2019[[i]] <- st_read(File[i])
+}
+```
+
+```{r}
+data %>%
+  left_join_dt(shp2019[[2]], by = c("城市" = "市")) -> data1
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = shp2019[[1]], fill = "NA", size = 0.1, color = "#96999C") +
+  geom_sf(data = shp2019[[2]], fill = "NA", size = 0.1, color = "#96999C") +
+  # geom_sf(data = shp2019[[3]], fill = "NA", size = 0.1, color = "#96999C") +
+  geom_sf(data = shp2019[[4]], fill = "NA", size = 0.5, color = "#96999C") +
+  geom_sf(data = data1, size = 0.1, color = "#96999C", aes(geometry = geometry, fill = 确诊)) + #
+  expand_limits(fill = seq(0, 30, by = 5)) +
+  scale_fill_gradientn(colors = viridis::viridis(500)) +
+  labs(caption = "GS(2019)1822号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+
+
+# 地图
+审图号:GS(2019)1822号
+审图号:GS(2021)5448号
+```{r}
+data <- import("D:/desktop/book/tidybook/data/预报名.xlsx")
+
+setwd("D:/desktop/book/GS(2019)1822号")
+File <- list.files()[c(13, 20, 27, 6)]
+File
+shp2019 <- list()
+for (i in 1:length(File)) {
+  shp2019[[i]] <- st_read(File[i])
+}
+setwd("D:/desktop/book/GS(2021)5448号")
+File <- list.files()[c(14, 22, 29, 36, 50, 7, 72, 43, 58, 65, 79, 86, 93)]
+File
+shp2021 <- list()
+for (i in 1:length(File)) {
+  shp2021[[i]] <- st_read(File[i])
+}
+```
+
+```{r}
+ggplot() + # 国界线
+  geom_sf(data = shp2021[[1]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 海岸线
+  geom_sf(data = shp2021[[2]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 经纬网
+  geom_sf(data = shp2021[[3]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 九段线
+  geom_sf(data = shp2021[[4]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 省面
+  geom_sf(data = shp2021[[5]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 地市面
+  geom_sf(data = shp2021[[6]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 县面
+  geom_sf(data = shp2021[[7]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 省界线
+  geom_sf(data = shp2021[[8]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 市界线
+  geom_sf(data = shp2021[[9]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 县界线
+  geom_sf(data = shp2021[[10]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 主要公路
+  geom_sf(data = shp2021[[11]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 主要河流
+  geom_sf(data = shp2021[[12]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 主要铁路
+  geom_sf(data = shp2021[[13]], fill = "#34558B", size = 0.5, color = "#FC766A") +
+  labs(caption = "GS(2021)5448号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 省
+  geom_sf(data = shp2019[[1]], fill = "#34558B", size = 0.2, color = "#FFFFFF") +
+  labs(caption = "GS(2019)1822号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 市
+  geom_sf(data = shp2019[[2]], fill = "#34558B", size = 0.2, color = "#FFFFFF") +
+  labs(caption = "GS(2019)1822号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 县
+  geom_sf(data = shp2019[[3]], fill = "#34558B", size = 0.2, color = "#FFFFFF") +
+  labs(caption = "GS(2019)1822号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+ggplot() + # 九段线
+  geom_sf(data = shp2019[[4]], fill = "#34558B", size = 0.5, color = "#34558B") +
+  labs(caption = "GS(2019)1822号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
+```
+
+```{r}
+data %>% data.table()
+head(shp2021[[6]])
+head(shp2021[[7]])
+```
+
+```{r}
+data %>%
+  summarise_dt(n = .N, by = "籍贯市") %>%
+  left_join_dt(shp2021[[6]], by = c("籍贯市" = "NAME")) -> data1
+data1$n <- as.numeric(data1$n)
+data1
+data1 %>%
+  select_mix(geometry)
+```
+
+```{r}
+data %>%
+  summarise_dt(n = .N, by = "籍贯市") %>%
+  left_join_dt(shp2021[[7]], by = c("籍贯市" = "NAME")) -> data2
+data2$n <- as.numeric(data2$n)
+data2
+data2 %>%
+  select_mix(geometry)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = shp2021[[5]], fill = "NA", size = 0.1, color = "#96999C") +
+  # geom_sf(data = shp2021[[6]], fill = "NA", size = 0.1, color = "#96999C") +
+  # geom_sf(data = shp2021[[7]], fill = "NA", size = 0.1, color = "#96999C") +
+  geom_sf(data = shp2021[[1]], fill = "NA", size = 0.5, color = "#96999C") +
+  geom_sf(data = data1, size = 0.1, color = "#96999C", aes(geometry = geometry, fill = n)) + #
+  expand_limits(fill = seq(0, 30, by = 5)) +
+  scale_fill_gradientn(colors = viridis::viridis(500)) +
+  labs(caption = "GS(2019)1822号") +
+  Yuri_theme +
+  theme(
+    axis.line = element_line(color = NA),
+    legend.key.height = unit(1.5, "cm"),
+    plot.caption.position = "plot",
+  )
 ```
 
 # 网络图
-```{r, fig.width = 7, fig.height = 7}
+(ggraph)
+```{r, fig.width = 7.25, fig.height = 7}
 import("D:/desktop/book/tidybook/data/other/网络图.xlsx") %>%
   ggraph(layout = "linear", circular = TRUE) +
-  geom_edge_arc(aes(edge_alpha = Cor, edge_width = Cor), color = "#34558B") + # 画线
-  geom_node_point(size = 5) + # 画点
+  geom_edge_arc(aes(edge_width = Cor), edge_alpha = 0.1, color = "#34558B") + # 画线
+  geom_node_point(size = 5, color = "#FC766A") + # 画点
   geom_node_text(aes(label = name), repel = TRUE) + # 加标签
-  # Yuri_theme+
-  theme(legend.position = "none")
+  Yuri_theme +
+  theme(
+    legend.position = "none",
+    axis.line = element_line(color = NA),
+    axis.text.x = element_text(size = 0),
+    axis.text.y = element_text(size = 0),
+    axis.title.x = element_text(size = 0),
+    axis.title.y = element_text(size = 0),
+    axis.ticks.x = element_line(color = NA, size = 0),
+    axis.ticks.y = element_line(color = NA, size = 0),
+    axis.ticks.length = unit(0, "cm"),
+  )
 ```
 
 # 流程图
@@ -233,6 +570,7 @@ data %>%
   ggplot(aes(x = drug, y = before)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
+  Yuri_theme +
   expand_limits(y = c(7, 12)) -> before
 ```
 
@@ -242,6 +580,7 @@ data %>%
   ggplot(aes(x = drug, y = after)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
+  Yuri_theme +
   expand_limits(y = c(7, 9)) -> after
 ```
 
@@ -269,6 +608,7 @@ databa %>%
     y_position = 11.5,
     test = t.test,
   ) +
+  Yuri_theme +
   expand_limits(y = c(6, 12)) -> dif
 ```
 
@@ -294,6 +634,7 @@ databa %>%
     test = t.test,
   ) +
   expand_limits(y = c(6, 12)) +
+  Yuri_theme +
   theme(legend.position = (c(0.95, 0.25))) -> sum
 ```
 
@@ -472,6 +813,17 @@ import("D:/desktop/book/tidybook/data/2013-2020年中国总理记者会关键词
   Yuri_theme +
   theme(legend.position = "none")
 ```
+
+# 文字标签防重叠
+```{r}
+q %>%
+  ggplot(aes(x = CO2, y = O2, color = age)) +
+  geom_text_repel(aes(label = pH), size = 6) +
+  scale_color_gradientn(colors = viridis::viridis(500)) +
+  expand_limits(fill = seq(65, 85, by = 5)) +
+  Yuri_theme
+```
+
 
 # 边际图
 (ggside)

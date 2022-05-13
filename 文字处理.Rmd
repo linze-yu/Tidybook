@@ -35,7 +35,379 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 # 加载包
 ```{r 加载包}
 library("YuriR") #
+library("qdap") # 6800个带标签的单词,经过严格审查的学术研究
+library("future.apply") # 多个文件的并行读取
+library("quanteda") #
+library("textfeatures") # 基本特征提取
+library("text2vec") # 词嵌入,词袋模型
+library("stringdist") # 距离计算
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
+
+# 字符串的基本处理(string包)
+## 字符串构造`<-("")`
+```{r}
+cn_string <- ("上海自来水来自海上,山西运煤车煤运西山")
+en_string <- ("Heave is a place nearby,so there's not need to say goodbye.")
+```
+
+## 字符串的辨识,计数与定位
+判断字符串是否存在`str_detect(,"")`
+```{r}
+str_detect(cn_string, "山")
+```
+
+字符串出现了几次`str_count(,"")`
+```{r}
+str_count(cn_string, "山")
+```
+
+字符串长度`str_length()`
+```{r}
+str_length(cn_string)
+```
+
+字符串在何处出现`str_locate(,"")`
+```{r}
+str_locate(cn_string, "山")
+```
+
+多次定位`str_locate_all(,"")`
+```{r}
+str_locate_all(cn_string, "山")
+```
+
+## 字符串的提取
+根据字符串所在位置`str_sub(,start=,end=)`
+```{r}
+str_sub(cn_string, start = 1, end = 5)
+str_sub(cn_string, start = -4, end = -1)
+```
+
+根据字符串的内容`str_extract(,"")`
+```{r}
+str_extract(cn_string, "山西")
+```
+
+## 字符串大小写转换
+小写`str_to_lower()`
+```{r}
+str_to_lower(en_string)
+```
+
+大写`str_to_upper`
+```{r}
+str_to_upper(en_string)
+```
+
+标题`str_to_title()`
+```{r}
+str_to_title(en_string)
+```
+
+正常句子`str_to_sentence()`
+```{r}
+str_to_sentence(en_string)
+```
+
+## 指定字符串的输出长度
+填充`str_pad("",,side="",pad="")`
+```{r}
+str_pad("HOPE", 30, side = "both", pad = " ")
+```
+
+截断`str_trunc(,width=,side="",ellipsis=)`
+```{r}
+str_trunc(en_string, width = 30, side = "left", ellipsis = "!!!")
+```
+
+## 空格转换
+清除字符两侧的空格`str_trim("  ",side="")`
+```{r}
+str_trim(" HOPE ", side = "left")
+```
+
+任意长度大于1的空格都缩减为长度为1的空格`str_squish("")`
+```{r}
+str_squish("are  you  ok")
+```
+
+## 字符替换与删除
+替换`str_replace(,"","")`
+```{r}
+str_replace(cn_string, "西", "东")
+```
+
+替换全部`str_replace_all(,"","")`
+```{r}
+str_replace_all(cn_string, "西", "东")
+```
+
+删除`str_remove(,"")`
+```{r}
+str_remove(cn_string, "西")
+```
+
+删除全部`str_remove_all(,"")`
+```{r}
+str_remove_all(cn_string, "西")
+```
+
+## 字符串的拼接与拆分
+拼接`str_c("","")`
+```{r}
+str_c("锄禾", "日当午")
+```
+
+拼接加间隔`str_c("","",sep=",")`
+```{r}
+str_c("锄禾日当午", "汗滴禾下土", sep = ",")
+```
+
+拆分`str_split("",pattern=",")`
+```{r}
+str_split("锄禾日当午,汗滴禾下土", pattern = ",")
+```
+
+非列表结果`str_split("",pattern=",") %>% unlist`
+```{r}
+str_split("锄禾日当午,汗滴禾下土", pattern = ",") %>% unlist()
+```
+
+## 字符串的排序
+正序`c("","") %>% str_sort()`
+```{r}
+c("c", "a", "b", "d") %>% str_sort()
+```
+
+倒序`c("c","a","b","d") %>% str_sort(decreasing=T)`
+```{r}
+c("c", "a", "b", "d") %>% str_sort(decreasing = T)
+```
+
+# 正则表达式
+## 通配符
+
+序号|通配符|通配符描述
+:-:|-:|:-
+1|`.`|句号匹配任意除了换行符之外的单个字符
+2|`[]`|匹配方括号内的任意字符
+3|`[^]`|匹配除了方括号里的任意字符
+4|`*`|匹配>=0个重复的在星号之前的字符
+5|`+`|匹配>=1个重复的+号前的字符
+6|`?`|标记?之前的字符为可选
+7|`{n,m}`|匹配num个大括号之间的字符(n<=mun<=m)
+8|`(xyz)`|字符集,匹配与xyz完全相等的字符串
+9|`|`|或运算符,匹配符号前或后的字符
+10|`\`|转义字符,用于匹配一些保留的字符<U+00A0>(小)[中]{大}.*+?^$
+11|`^`|从开始位置匹配
+12|`$`|从末端位置匹配
+
+## 点运算符(".")
+匹配任意单个字符,但是不会匹配换行符`str_extract_all("",".") %>% unlist`
+```{r}
+str_extract_all("The carparked in the garage.", ".ar") %>% unlist()
+```
+
+## 字符集("[]")
+```{r}
+str_extract_all("The carparked in the garage.", "[T|t]he") %>% unlist()
+```
+
+匹配数字`str_extract_all("","[0-9]") %>% unlist`
+```{r}
+str_extract_all("I have 1 apple and you have 2.", "[0-9]") %>% unlist()
+```
+
+匹配小写字母`str_extract_all("","[a-z]") %>% unlist`
+```{r}
+str_extract_all("I have 1 apple and you have 2.", "[a-z]") %>% unlist()
+```
+
+匹配大写字母`str_extract_all("","[A-Z]") %>% unlist`
+```{r}
+str_extract_all("I have 1 apple and you have 2.", "[A-Z]") %>% unlist()
+```
+
+匹配符号`str_extract_all("","[]") %>% unlist`
+```{r}
+str_extract_all("I have 1 apple and you have 2.", "[.]") %>% unlist()
+```
+
+## 否定字符集("[^]")
+`str_extract_all("","[^]") %>% unlist`
+```{r}
+str_extract_all("The carparked in the garage.", "[^c]ar") %>% unlist()
+```
+
+# 导入各类文本数据
+
+# 文本切分
+## 文本创建
+```{r}
+cn_text <- "我在倒数上去的二十年中,只看过两回中国戏,前十年是绝不看,因为没有看戏的意思和机会,那两回全在后十年,然而都没有看出什么来就走了。
+第一回是民国元年我初到北京的时候,当时一个朋友对我说,北京戏最好,你不去见见世面么？我想,看戏是有味的,而况在北京呢。于是都兴致勃勃地跑到什么园,戏文已经开场了,在外面也早听到冬冬地响。我们挨进门,几个红的绿的在我的眼前一闪烁,便又看见戏台下满是许多头,再定神四面看,却见中间也还有几个空座,挤过去要坐时,又有人对我发议论,我因为耳朵已经喤喤的响着了,用了心,才听到他是说“有人,不行！”"
+```
+
+```{r}
+en_text <- "I am happy to join with you today in what will go down in history as the greatest demonstration for freedom in the history of our nation.
+Five score years ago, a great American, in whose symbolic shadow we stand today, signed the Emancipation Proclamation. This momentous decree came as a great beacon light of hope to millions of Negro slaves who had been seared in the flames of withering injustice. It came as a joyous daybreak to end the long night of bad captivity."
+```
+
+## 段落切分(tonkenizers包)`tokenize_paragraphs(paragraph_break="\n\n")`
+```{r}
+cn_text %>%
+  tokenize_paragraphs(paragraph_break = "\n\n")
+```
+
+```{r}
+en_text %>%
+  tokenize_paragraphs(paragraph_break = "\n\n")
+```
+
+## 句子切分(···)`tokenize_sentences()`
+```{r}
+cn_text %>%
+  tokenize_sentences()
+```
+
+```{r}
+en_text %>%
+  tokenize_sentences()
+```
+
+## 词语切分(···)`tokenize_words()`
+```{r}
+cn_text %>%
+  tokenize_words()
+```
+
+```{r}
+en_text %>%
+  tokenize_words()
+```
+
+## n元切分(tonkenizers包)` %>% tokenize_ngrams(n=,simplify=T)`
+
+## 去除标点(stringr包)`str_replace_all("[:punct:]","")`
+```{r}
+cn_text %>%
+  str_replace_all("[:punct:]", "")
+```
+
+## 中文分词(jiebaR包)
+devtools::install_github("qinwf/jiebaR")
+```{r}
+分词器 <- worker()
+# 分词器$bylines = TRUE#分行输出
+# 分词器$symbol = TRUE#保留符号
+segment(cn_text, 分词器)
+segment(en_text, 分词器)
+```
+
+词典位置
+```{r}
+show_dictpath()
+```
+
+停词位置
+```{r}
+jiebaR::STOPPATH
+# readLines("D:/R-4.1.2/library/jiebaRD/dict/stop.txt",encoding="UTF-8")
+```
+
+去除停用词
+```{r}
+分词器 <- worker(stop_word = "D:/desktop/book/tidybook/mods/stop.txt", encoding = "UTF-8")
+```
+
+### 模型
+
+序号|模型|注释
+:-:|-:|:-
+1|mp(最大概率模型)|基于词典和词频
+2|hmm(HMM模型)|基于HMM模型,可以发现词典中没有的词
+3|mix(混合模型)|先用 mp分,mp分完调用hmm再来把剩余的可能成词的单字分出来。
+4|query(索引模型)|mix 基础上,对大于一定长度的词再进行一次切分。
+5|tag(标记模型)|词性标记,基于词典的
+6|keywords(关键词模型)| tf-idf 抽 关键词
+7|simhash(Simhash模型)|在关键词的基础上计算simhash
+
+参数
+```{r}
+worker(
+  type = "mix", # 模型mp,hmm,mix,query,tag,keywords,simhash
+  dict = DICTPATH, # 系统词典
+  hmm = HMMPATH,
+  user = USERPATH, # 用户词典
+  user_weight = "max", # min,median
+  idf = IDFPATH,
+  stop_word = "D:/desktop/book/tidybook/mods/stop.txt",
+  write = T,
+  qmax = 20,
+  topn = 5,
+  encoding = "UTF-8",
+  detect = T,
+  symbol = F,
+  lines = 1e+05, # 读取行数,大文件,实现分次读取
+  output = NULL,
+  bylines = F
+)
+```
+
+## 扩展缩写(qdap包)
+```{r}
+x <- c("isn't")
+replace_contraction(x)
+```
+
+## 词干提取(tokenizers包)
+```{r}
+"falling bridge" %>%
+  tokenize_word_stems(simplify = T)
+```
+
+## 词形还原与词性标注(udpipe包)
+安装模型
+```{r}
+# udmodel <- udpipe_download_model(language = "english", file = "D:/desktop/book/tidybook/mods") # 英文
+# udmodel <- udpipe_download_model(language = "chinese", file = "D:/desktop/book/tidybook/mods") # 中文
+```
+
+```{r}
+en_model <- udpipe_load_model(file = "D:/desktop/book/tidybook/mods/english-ewt-ud-2.5-191206.udpipe")
+udpipe_annotate(en_model, "london bridge is falling down.") %>%
+  as_tibble() %>%
+  select(token, lemma)
+```
+
+## 批量文档预处理
+
+# 文本特征提取
+## 基本特征提取
+
+## 基于TF-IDF的特征提取(tidytext包)
+TF(词频)  
+IDF(逆文档频率)  
+`bind_tf_idf()`
+
+## 词嵌入(text2vec包)
+
+# 文本分类
+
+# 文本情感分析
+(RSentiment包)仅限英文
+install.packages("RSentiment")
+
+(sentimentr包) install.packages("sentimentr")
+
+(SentimentAnalysis包) install.packages("SentimentAnalysis")
+
+(meanr包) remotes::install_github("wrathematics/meanr")
+
+(sentometrics包) devtools::install_github("SentometricsResearch/sentometrics")
+
 
 # 批量文字处理
 ## 导入文本
@@ -62,7 +434,7 @@ for (i in 1:length(文本)) {
     user = USERPATH, # 用户词典
     user_weight = "max", # min,median
     idf = IDFPATH,
-    stop_word = "D:/desktop/book/Text Mining/stop.txt",
+    stop_word = "D:/desktop/book/tidybook/mods/stop.txt",
     write = T,
     qmax = 20,
     topn = 5,

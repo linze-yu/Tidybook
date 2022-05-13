@@ -37,8 +37,10 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 ## 加载包
 ```{r 加载包}
 library("YuriR") #
-# library("rio")#
-# library("tidyverse")#
+# library("rio") #
+# library("tidyverse") #
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 ```{r}

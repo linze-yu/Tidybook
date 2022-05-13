@@ -41,6 +41,8 @@ library("tayloRswift") #
 # library("rio") #
 # library("tidyverse") #
 # library("tidyfst") #
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 ```{r}
@@ -309,7 +311,10 @@ p综合图2
 q %>%
   ggplot(aes(sample = CO2), ) +
   stat_qq_line(linetype = 1, color = "#FC766A", alpha = 1, size = 1, lineend = "square") +
-  stat_qq(shape = 21, color = "#FC766A", fill = "#95AAD3", alpha = 1, size = 3, stroke = 1)
+  stat_qq(shape = 21, color = "#FC766A", fill = "#95AAD3", alpha = 1, size = 3, stroke = 1) +
+  geom_abline(intercept = 0, slope = 1, color = "blue", size = 1) +
+  expand_limits(x = c(-3, 3), y = c(0, 110)) +
+  coord_fixed(ratio = 1 / 25)
 ```
 
 ## 直方图histogram

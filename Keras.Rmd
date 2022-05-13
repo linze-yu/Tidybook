@@ -36,4 +36,6 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 ```{r 加载包}
 library("YuriR") #
 library("keras") #
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```

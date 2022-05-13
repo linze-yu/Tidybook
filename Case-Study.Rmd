@@ -38,13 +38,88 @@ library("YuriR") #
 library("ggbeeswarm") # 散点防止重合
 library("ggExtra") # 边际直方图/密度曲线*
 library("ggside") # 边际直方图/密度曲线
-# library("ggwordcloud")#词云
-# library("gghalves")#组合
+# library("ggwordcloud") # 词云
+# library("gghalves") # 组合
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
+
+# Case 1
+```{r}
+import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") -> data
+head(data)
+```
+
+```{r}
+data$RELATIONSHIP.0 <- factor(data$RELATIONSHIP.0, levels = c("PAR_CH", "PARTNERS", "RND.PAIR", "SIBL"))
+```
+
+```{r, fig.width = 7, fig.height = 5}
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec, color = RELATIONSHIP.0)) +
+  geom_violin(alpha = 0.4, width = 0.8, position = position_dodge(width = 0.8), size = 0.75) +
+  geom_boxplot(alpha = 0.2, width = 0.4, position = position_dodge(width = 0.8), size = 0.75, outlier.colour = NA) +
+  geom_jitter(alpha = 0.2, position = position_jitterdodge(jitter.width = 1, jitter.height = 0, dodge.width = 0.8)) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  Yuri_theme +
+  theme(legend.position = "none", text = element_text(size = 16)) +
+  labs(y = "Bray-Curtis distance of Species")
+```
+
+# Case 2
+```{r}
+library("vegan")
+inMBss <- read.table("D:/desktop/book/tidybook/data/paper/inMBss.tsv", row.names = 1, header = T)
+dim(inMBss)
+distMatrix <- vegdist(inMBss, method = "bray")
+pCoa <- cmdscale(distMatrix, eig = T, k = 2)
+```
+
+```{r}
+varExp <- (eigenvals(pCoa) / sum(eigenvals(pCoa)))[1:2]
+xVar <- as.numeric(varExp[1] * 100)
+yVar <- as.numeric(varExp[2] * 100)
+```
+
+```{r}
+pCoaVecs <- as.data.frame(pCoa$points)
+colnames(pCoaVecs) <- paste0("PCo", c(1:2))
+pCoaVecs$ID <- row.names(pCoaVecs)
+
+inMBssID <- inMBss
+inMBssID$ID <- row.names(inMBssID)
+inMBssPrev <- inMBssID[, c("ID", "k__Bacteria.p__Bacteroidetes.c__Bacteroidia.o__Bacteroidales.f__Prevotellaceae.g__Prevotella.s__Prevotella_copri")]
+colnames(inMBssPrev) <- c("ID", "P.copri")
+pCoaVecsTaxa <- merge(pCoaVecs, inMBssPrev, by = "ID")
+```
+
+```{r}
+pCoaVecsTaxa %>%
+  ggplot(aes(x = PCo1, y = PCo2, color = P.copri, fill = P.copri)) +
+  geom_point(size = 2, shape = 21, alpha = 0.5) +
+  scale_color_gradientn(colours = viridis::viridis(1000)) +
+  scale_fill_gradientn(colours = viridis::viridis(1000)) +
+  labs(x = "PCo1 25.62%", y = "PCo2 10.81%") +
+  Yuri_theme +
+  theme(text = element_text(size = 16))
+```
+
+
+[1]GACESA R, KURILSHIKOV A, VICH VILA A, et al. Environmental factors shaping the gut microbiome in a Dutch population [J]. **Nature**, 2022, 604(7907): 732-9.  
+  
+(IF: 49.962)  
+  
+[2]丁惠国,屠红,曲春枫,等.原发性肝癌的分层筛查与监测指南(2020版) [Z].临床肝胆病杂志.2021:286-95  
+
+
+
+
+
 
 # Case 1(prism1.xlsx)
 ```{r, fig.width = 7, fig.height = 5}
-import("D:/desktop/book/tidybook/data/prism1.xlsx") %>%
+import("D:/desktop/book/tidybook/data/paper/prism1.xlsx") %>%
   longer_dt(name = "group", value = "value") %>%
   summarize_dt(n = .N, sd = sd(value), mean = mean(value), by = group) %>%
   ggplot(aes(x = group, y = mean)) +
@@ -72,7 +147,7 @@ theme(
 # Case 2(prism2.xlsx)
 ```{r, fig.width = 7, fig.height = 5}
 # col <- c("#BD3645", "#696AAD")
-import("D:/desktop/book/tidybook/data/prism2.xlsx") %>%
+import("D:/desktop/book/tidybook/data/paper/prism2.xlsx") %>%
   longer_dt(group1, name = "group", value = "value") -> c
 c[, c("mean", "sd", "n") := .(mean(value), sd(value), .N), by = c("group", "group1")]
 c[, -c("value")] %>%
@@ -103,7 +178,7 @@ theme(
 
 # Case 3(prism3.xlsx)
 ```{r, fig.width = 5, fig.height = 5}
-import("D:/desktop/book/tidybook/data/prism3.xlsx") %>%
+import("D:/desktop/book/tidybook/data/paper/prism3.xlsx") %>%
   longer_dt(n, name = "group", value = "value") %>%
   ggplot(aes(x = group, y = value)) +
   geom_line(aes(group = n), alpha = 1, linetype = 1, color = "#96999C", lineend = "square") +

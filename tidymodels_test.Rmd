@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png")
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -36,9 +36,23 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 ```{r 加载包}
 library("YuriR") #
 library("tidymodels") #
+library("ggalt") #
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
-## 使用重采样和整洁数据的假设检验
+# 200d
+```{r}
+import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") %>% mutate_vars(1:4, scale) -> data
+```
+
+```{r}
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, )) +
+  geom_point(shape = 21, color = "#95AAD3", fill = NA, alpha = 0.2, size = 2, stroke = 1) +
+  Yuri_theme
+```
+
 
 
 

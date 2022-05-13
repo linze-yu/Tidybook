@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 1200, collapse = F, fig.align = "left", dev = "png", cache = T)
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -57,7 +57,8 @@ library("ggside") # 边际直方图/密度曲线
 # devtools::install_github("r-lib/devtools")
 # devtools::install_github("Yurisuriyel/YuriR")
 # font_install(source_han_serif())
-font_families()
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 # RMarkdown使用
