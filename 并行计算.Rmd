@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 showtext_auto()
 showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
@@ -65,7 +65,7 @@ plot <- function(x) {
     geom_point(size = 3, shape = 21, stroke = 1, fill = NA) +
     scale_color_manual(values = cols) +
     scale_fill_manual(values = fills) +
-    Yuri_theme
+    lin_theme
 }
 
 columns <- names(data)[2:4] # 要绘制的多个列名

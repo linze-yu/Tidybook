@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("ggbeeswarm") # 散点防止重合
 library("ggExtra") # 边际直方图/密度曲线*
 library("ggside") # 边际直方图/密度曲线
@@ -62,7 +62,7 @@ data %>%
   geom_jitter(alpha = 0.2, position = position_jitterdodge(jitter.width = 1, jitter.height = 0, dodge.width = 0.8)) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none", text = element_text(size = 16)) +
   labs(y = "Bray-Curtis distance of Species")
 ```
@@ -101,7 +101,7 @@ pCoaVecsTaxa %>%
   scale_color_gradientn(colours = viridis::viridis(1000)) +
   scale_fill_gradientn(colours = viridis::viridis(1000)) +
   labs(x = "PCo1 25.62%", y = "PCo2 10.81%") +
-  Yuri_theme +
+  lin_theme +
   theme(text = element_text(size = 16))
 ```
 
@@ -128,7 +128,7 @@ import("D:/desktop/book/tidybook/data/paper/prism1.xlsx") %>%
   expand_limits(y = c(0, 14)) +
   scale_y_continuous(breaks = seq(0, 50, by = 2), minor_breaks = seq(0, 50, by = 1)) +
   labs(x = "", y = "N-cadherin relative expression(fold)", tag = "A") +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r, eval = F}
@@ -158,7 +158,7 @@ c[, -c("value")] %>%
   scale_fill_manual(values = cols) +
   scale_y_continuous(breaks = seq(0, 50, by = 2), minor_breaks = seq(0, 50, by = 1)) +
   labs(x = "", y = "Relative luciferase activity(fold)", tag = "B") +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.2, 1)))
 ```
 
@@ -185,7 +185,7 @@ import("D:/desktop/book/tidybook/data/paper/prism3.xlsx") %>%
   expand_limits(y = c(0, 20)) +
   geom_point(shape = 21, size = 3, color = 1, fill = 1) +
   labs(x = "", y = "Relative miR-776-3p expression", title = "n=25 p<0.001") +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r, eval = F}
@@ -212,7 +212,7 @@ import("D:/desktop/book/tidybook/data/case_1/0.xlsx") %>%
   scale_y_continuous(breaks = seq(0, 20, by = 4), minor_breaks = seq(0, 0, by = 0)) +
   expand_limits(x = c(2, 6), y = c(0, 14)) +
   coord_fixed(ratio = 1 / 4) +
-  Yuri_theme +
+  lin_theme +
   labs(x = "Adjacent", y = "Tumor")
 ```
 
@@ -232,7 +232,7 @@ c[, -c("value")] %>%
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   coord_fixed(ratio = 2 / 200) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.4, 0.95))) +
   labs(x = "Day(s)", y = "Values")
 ```
@@ -247,7 +247,7 @@ import("D:/desktop/book/tidybook/data/case_1/2.xlsx") %>%
   geom_col(width = 0.5, alpha = 0.5, size = 1, lineend = "square") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none") +
   labs(x = "", y = "Values")
 ```
@@ -263,7 +263,7 @@ import("D:/desktop/book/tidybook/data/case_1/3.xlsx") %>%
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   scale_y_break(c(10, 100), scales = 0.25) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none") +
   labs(x = "", y = "Values")
 ```
@@ -281,7 +281,7 @@ c[, -c("value")] %>%
   scale_y_continuous(breaks = seq(0, 1500, by = 200), minor_breaks = seq(0, 0, by = 0)) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.9, 0.9))) +
   labs(x = "", y = "Values")
 ```
@@ -307,7 +307,7 @@ p <- ggsurvplot(fit,
   legend = c(0.95, 0.95), # 指定图例位置
   facet.by = NULL,
   font.family = "Source Han Sans",
-  ggtheme = Yuri_theme,
+  ggtheme = lin_theme,
   add.all = FALSE,
   combine = FALSE
 ) +
@@ -325,7 +325,7 @@ import("D:/desktop/book/tidybook/data/case_1/6.xlsx") %>%
   scale_fill_gradient(low = "#F8CDCD", high = "#696AAD") +
   expand_limits(x = c(1, 20), fill = seq(-2, 2, by = 1)) +
   scale_x_continuous(breaks = seq(1, 20, by = 2), minor_breaks = seq(0, 0, by = 0)) +
-  Yuri_theme
+  lin_theme
 ```
 
 # Case 5
@@ -335,7 +335,7 @@ import("D:/desktop/book/tidybook/data/case_2/0.xlsx") %>%
   ggplot(aes(x = X, y = Y)) +
   geom_point(size = 5, shape = 21, alpha = 0.5, color = "#696AAD", fill = "#95AAD3", stroke = 1) +
   coord_fixed(ratio = 1 / 1) +
-  Yuri_theme
+  lin_theme
 ```
 
 ## 折线图
@@ -352,7 +352,7 @@ c[, -c("value")] %>%
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   coord_fixed(ratio = 1 / 1) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.35, 0.95)))
 ```
 
@@ -365,7 +365,7 @@ import("D:/desktop/book/tidybook/data/case_2/2.xlsx") %>%
   geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), width = 0.25, alpha = 1, size = 1, lineend = "square") +
   geom_col(width = 0.5, alpha = 0.5, size = 1, lineend = "square") +
   scale_y_continuous(breaks = seq(0, 2, by = 0.5), minor_breaks = seq(0, 0, by = 0)) +
-  Yuri_theme +
+  lin_theme +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   theme(legend.position = ("none"))
@@ -384,7 +384,7 @@ c[, -c("value")] %>%
   scale_y_continuous(breaks = seq(0, 5, by = 1), minor_breaks = seq(0, 0, by = 0)) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.95, 0.95)))
 ```
 
@@ -398,7 +398,7 @@ import("D:/desktop/book/tidybook/data/case_2/4.xlsx") %>%
   scale_y_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(0, 0, by = 0)) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = ("none"))
 ```
 
@@ -420,7 +420,7 @@ import("D:/desktop/book/tidybook/data/case_2/6.xlsx") %>%
   geom_col(width = 0.8, alpha = 0.5, size = 1, lineend = "square") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = ("none"))
 ```
 
@@ -434,7 +434,7 @@ import("D:/desktop/book/tidybook/data/case_2/7.xlsx") %>%
   scale_fill_gradient(low = "#F8CDCD", high = "#696AAD") +
   expand_limits(x = c(1, 12), fill = seq(-2, 2, by = 1)) +
   scale_x_continuous(breaks = seq(1, 20, by = 2), minor_breaks = seq(0, 0, by = 0)) +
-  Yuri_theme
+  lin_theme
 ```
 
 # 平均值的标准误(小提琴.xlsx)
@@ -452,5 +452,5 @@ c %>%
   geom_point(aes(x = group, y = mean), color = "#696AAD", shape = 21, size = 2, fill = NA, stroke = 1, ) +
   scale_y_continuous(name = "value", breaks = seq(0, 5, by = 1), minor_breaks = seq(0, 0, by = 0)) +
   scale_x_discrete(name = "", limits = c("1", "2", "3", "4"), labels = c("A", "B", "C", "D"), breaks = c("1", "2", "3", "4")) +
-  Yuri_theme
+  lin_theme
 ```

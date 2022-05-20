@@ -1,0 +1,160 @@
+---
+title: "社科"
+author: "Linze Yu"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute:
+    self_contained: TRUE
+    default_style: "light"
+    downcute_theme: "default"
+    fig_width: 7
+    fig_height: 5
+    use_bookdown: TRUE
+    gallery: TRUE
+    lightbox: TRUE
+    highlight: tango
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, 代码全局设置, echo = F}
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
+# , eval = F代码显示不运行
+# , include = F代码运行, 不显示代码和结果
+# , echo = T 显示代码块
+# , prompt = T使用>开始代码
+# , comment = ""结果不使用##
+# , collapse = T#代码合并结果
+# , out.width/out.height = 0.8缩放
+# , fig.align = "left","center","right"对齐方式
+# , dev = "pdf","png","svg","jpeg"记录设备
+# , cache = T
+```
+
+## 加载包
+```{r 加载包}
+library("linr") #
+library("lavaan") # 结构方程模型
+library("semPlot") # 结构方程模型可视化
+showtext_auto()
+showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
+```
+
+# 4/1
+```{r}
+data <- import("D:/desktop/book/tidybook/data/社科/北京市交通发展年报中2003年到2020年的交通统计数据.xlsx")
+data
+```
+
+# 案例
+```{r}
+model <- "
+# 利用被测变量(右)定义潜在变量(左)：测量模型
+ind60 =~ x1 + x2 + x3
+dem60 =~ y1 + y2 + y3 + y4
+dem65 =~ y5 + y6 + y7 + y8
+# 构建回归方程：路径模型
+dem60 ~ ind60
+dem65 ~ ind60 + dem60
+# 两边相同，表示该变量的方差，不同的话表示两者的协方差
+y1 ~~ y5
+y2 ~~ y4 + y6
+y3 ~~ y7
+y4 ~~ y8
+y6 ~~ y8"
+```
+
+```{r}
+fit <- sem(model, data = PoliticalDemocracy)
+summary(fit)
+summary(fit, fit.measures = TRUE)
+summary(fit, standardized = TRUE)
+```
+
+```{r}
+fitMeasures(fit, c("chisq", "df", "pvalue", "gfi", "cfi", "rmr", "srmr", "rmsea"))
+```
+
+|指标名称|名称缩写|指标作用|接受标准|
+|-|-|-|-|
+|卡方值	|CHISQ|矩阵整体相似程度|P>0.05|
+|拟合指数|GFI|说明模型解释力|>0.90|
+|相对拟合指数|CFI|说明模型较虚无模型的改善程度|>0.95|
+|未标准化残差|RMR|未标准化假设模型整体残差|越小越好|
+|标准化残差|SRMR|标准化模型整体残差|<0.08|
+|近似均方根误差|RMSEA|理论模型与饱和模型的差异|<0.05|
+
+```{r}
+semPaths(fit)
+```
+
+```{r}
+semPaths(fit, what = "std", layout = "tree2", fade = F, nCharNodes = 0)
+```
+
+```{r}
+semPaths(fit, what = "std", layout = "tree2", fade = F, nCharNodes = 0, intercepts = F, residuals = F, thresholds = F)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-

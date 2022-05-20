@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("tidymodels") #
 library("keras")
 # library("mlr3verse") #
@@ -62,6 +62,7 @@ library("AER") #
 
 library("caret")
 library("pROC")
+library("ggrepel") #
 showtext_auto()
 showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
@@ -112,7 +113,7 @@ urchins %>%
   geom_smooth(method = lm, se = F) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.2, 0.95)))
 ```
 
@@ -139,7 +140,7 @@ tidy(lm_fit) %>%
     whisker_args = list(size = 1, color = "#696AAD"),
     vline = geom_vline(size = 1, xintercept = 0, colour = "#96999C", linetype = 2)
   ) +
-  Yuri_theme
+  lin_theme
 ```
 
 预测-预测值的类型是标准化的
@@ -176,7 +177,7 @@ ggplot(plot_data, aes(x = food_regime)) +
   geom_point(aes(y = .pred), size = 3, shape = 21, stroke = 1, color = "#FC766A") +
   geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), size = 1, width = .2, color = "#696AAD") +
   labs(y = "urchin size") +
-  Yuri_theme
+  lin_theme
 ```
 
 使用不同的引擎建模
@@ -213,7 +214,7 @@ ggplot(bayes_plot_data, aes(x = food_regime)) +
   geom_point(aes(y = .pred), size = 3, shape = 21, stroke = 1, color = "#FC766A") +
   geom_errorbar(aes(ymin = .pred_lower, ymax = .pred_upper), size = 1, width = .2, color = "#696AAD") +
   labs(y = "urchin size", title = "Bayesian model with t(1) prior distribution") +
-  Yuri_theme
+  lin_theme
 ```
 
 ## 建立模型2---纽约市的航班数据
@@ -387,7 +388,7 @@ data %>%
   geom_point(alpha = 1, size = 3, shape = 21, stroke = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -398,10 +399,26 @@ kclust
 summary(kclust) # 查看信息
 kclust$cluster # 查看聚类的结果,也就是每个点聚到了那个类
 kclust$centers # 查看中心点(聚类点)
-augment(kclust, points) # 将点分类添加到原始数据集
+augment(kclust, points) -> data1 # 将点分类添加到原始数据集
 tidy(kclust) %>% # 每个集群级别进行汇总
   data.table()
 glance(kclust) # 提取单行摘要
+kclust %>%
+  tidy() -> clusters
+```
+
+```{r}
+data1 %>%
+  ggplot(aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(color = .cluster), alpha = 1, size = 3, shape = 21, stroke = 0.8, fill = NA) +
+  geom_text_repel(data = clusters, aes(label = cluster), size = 10) +
+  geom_vline(aes(xintercept = mean(Sepal.Length)), color = "#34558B", linetype = 2, size = 1) +
+  geom_hline(aes(yintercept = mean(Sepal.Width)), color = "#34558B", linetype = 2, size = 1) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  scale_x_continuous(breaks = seq(0, 10, by = 0.5), minor_breaks = seq(0, 10, by = 0.25)) +
+  scale_y_continuous(breaks = seq(0, 5, by = 0.5), minor_breaks = seq(0, 5, by = 0.25)) +
+  lin_theme
 ```
 
 ### 探索性聚类
@@ -434,23 +451,23 @@ clusterings
 assignments %>%
   ggplot(aes(x = Sepal.Length, y = Sepal.Width)) +
   geom_point(aes(color = .cluster), shape = 21, fill = NA, stroke = 0.5) +
-  geom_point(data = clusters, size = 10, shape = "*", color = 1) +
+  geom_text_repel(data = clusters, aes(label = cluster), size = 3) + # x=Sepal.Length,y= Sepal.Width,
   facet_wrap(~k, ncol = 4) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
 clusterings %>%
   ggplot(aes(k, tot.withinss)) +
-  geom_line(size = 2, linetype = 3, color = "#FC766A") +
+  geom_line(size = 1, linetype = 1, color = "#FC766A") +
   geom_point(size = 5, shape = 21, fill = NA, stroke = 2, color = "#34558B") +
   scale_y_continuous(breaks = seq(0, 200, by = 25), minor_breaks = seq(0, 200, by = 5)) +
-  scale_x_continuous(breaks = seq(0, 13, by = 1), minor_breaks = seq(0, 0, by = 0)) +
+  scale_x_continuous(breaks = seq(0, 30, by = 1), minor_breaks = seq(0, 0, by = 0)) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme
 ```
 
 ## 引导重采样和整洁的回归模型
@@ -460,7 +477,7 @@ import("D:/desktop/book/tidybook/data/tidymodels/mtcars.xlsx") -> data
 data %>%
   ggplot(aes(x = mpg, y = wt)) +
   geom_point(size = 2, shape = 21, stroke = 1, color = "#34558B") +
-  Yuri_theme
+  lin_theme
 ```
 
 非线性最小二乘法来拟合模型
@@ -472,7 +489,7 @@ data %>%
   ggplot(aes(x = wt, y = mpg)) +
   geom_point(size = 2, shape = 21, stroke = 1, color = "#34558B") +
   geom_line(aes(y = predict(nlsfit)), color = "#FC766A", size = 1, linetype = 3) +
-  Yuri_theme
+  lin_theme
 ```
 自举模型
 ```{r}
@@ -511,7 +528,7 @@ boot_coefs %>%
   facet_wrap(~term, scales = "free") +
   geom_vline(aes(xintercept = .lower), data = percentile_intervals, color = "#34558B") +
   geom_vline(aes(xintercept = .upper), data = percentile_intervals, color = "#34558B") +
-  Yuri_theme
+  lin_theme
 ```
 
 可能的模型拟合
@@ -529,7 +546,7 @@ boot_aug %>%
   ggplot(aes(wt, mpg)) +
   geom_line(aes(y = .fitted, group = id), alpha = 0.2, color = "#34558B") +
   geom_point(size = 2, shape = 21, stroke = 1, color = "#BD3645") +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -553,7 +570,7 @@ splines_aug <-
 ggplot(splines_aug, aes(x, y)) +
   geom_line(aes(y = .fitted, group = id), alpha = 0.2, color = "#34558B") +
   geom_point(size = 2, shape = 21, stroke = 1, color = "#BD3645") +
-  Yuri_theme
+  lin_theme
 ```
 
 ## 使用重采样和整洁数据的假设检验
@@ -596,7 +613,7 @@ ad_data %>%
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   coord_flip() +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -812,7 +829,7 @@ ggplot(tidy_df, aes(step, estimate, group = term, color = term)) +
   labs(y = "Coefficients") +
   scale_color_manual(values = cols) + # viridis::viridis(10)
   scale_fill_manual(values = fills) + # viridis::viridis(10)
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -823,7 +840,7 @@ ggplot(tidy_df, aes(lambda, estimate, group = term, color = term)) +
   labs(x = "Log Lambda", y = "Coefficients") +
   scale_color_manual(values = cols) + # viridis::viridis(10)
   scale_fill_manual(values = fills) + # viridis::viridis(10)
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -832,7 +849,7 @@ ggplot() +
   geom_errorbar(data = tidy_cvdf, aes(x = lambda, ymin = conf.low, ymax = conf.high)) +
   scale_x_log10() +
   labs(x = "Log Lambda", y = "Coefficients") +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -973,19 +990,19 @@ data %>%
   geom_point(size = 2, stroke = 1, fill = NA, shape = 21) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme
 data %>%
   ggplot(aes(x = sspg, y = insulin, color = class)) +
   geom_point(size = 2, stroke = 1, fill = NA, shape = 21) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme
 data %>%
   ggplot(aes(x = sspg, y = glucose, color = class)) +
   geom_point(size = 2, stroke = 1, fill = NA, shape = 21) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme
 ```
 
 # 机器学习
@@ -1019,7 +1036,7 @@ data %>%
   ggplot(aes(x = Glucose, y = Insulin)) +
   geom_point() +
   stat_smooth() +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -1028,7 +1045,7 @@ data %>%
   ggplot(aes(x = Glucose, y = Insulin)) +
   geom_point() +
   stat_smooth() +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -1043,7 +1060,7 @@ data %>%
   ggplot(aes(x = Glucose, y = Insulin)) +
   geom_point() +
   stat_smooth(method = lm) +
-  Yuri_theme
+  lin_theme
 ```
 
 # Logistic模型
@@ -1120,7 +1137,7 @@ testdata$prob <- predict(fit.reduced,
 ggplot(testdata, aes(x = rating, y = prob)) +
   geom_col(aes(fill = factor(rating)), show.legend = F) +
   geom_label(aes(label = round(prob, 2))) +
-  Yuri_theme
+  lin_theme
 ```
 
 # 随机森林

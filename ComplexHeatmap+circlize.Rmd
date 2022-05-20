@@ -33,7 +33,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 ```
 
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("magick") #
 # library("ComplexHeatmap") #
 # library("circlize") #

@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 # 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("qdap") # 6800个带标签的单词,经过严格审查的学术研究
 library("future.apply") # 多个文件的并行读取
 library("quanteda") #
@@ -519,7 +519,7 @@ end %>%
   # scale_fill_manual(values = fills) +
   facet_wrap(~year, ncol = 3, scales = "free") +
   coord_flip() +
-  Yuri_theme +
+  lin_theme +
   theme(
     legend.position = "none",
     axis.line = element_line(size = 0.5),

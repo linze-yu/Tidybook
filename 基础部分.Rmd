@@ -40,7 +40,7 @@ names(knitr::knit_engines$get())
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("ggbeeswarm") # 散点防止重合
 library("tayloRswift") #
 library("ggside") # 边际直方图/密度曲线
@@ -115,7 +115,7 @@ seq(-3, 3, by = 0.01) %>%
   expand.grid(x = ., y = .) %>%
   ggplot(aes(x = (1 - x - sin(y^2)), y = (1 + y - cos(x^2)))) +
   geom_point(alpha = 0.05, shape = 20, size = 0) +
-  Yuri_theme +
+  lin_theme +
   coord_polar()
 ```
 
@@ -124,7 +124,7 @@ seq(-10, 10, by = 0.05) %>%
   expand.grid(x = ., y = .) %>%
   ggplot(aes(x = (x + pi * sin(y)), y = (y + pi * sin(x)))) +
   geom_point(alpha = 0.1, shape = 15, size = 1, col = "darkmagenta") +
-  Yuri_theme
+  lin_theme
 ```
 
 ```{r}
@@ -133,5 +133,5 @@ data.frame(x = t^(1 / 2) * cos(t), y = t^(1 / 2) * sin(t)) %>%
   rbind(-.) %>%
   ggplot(aes(x, y)) +
   geom_polygon() +
-  Yuri_theme
+  lin_theme
 ```

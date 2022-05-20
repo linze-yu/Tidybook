@@ -36,73 +36,98 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("ggbeeswarm") # 散点防止重合
 library("ggside") # 边际直方图/密度曲线
 library("hexbin") # 六边形
 library("ggpointdensity") # 散点图和二维密度图之间的交叉
 library("ggraph") # 网络图
 library("sf") # 地图相关
-library("ggrepel") #
 # library("DiagrammeR") # 流程图
 # library("webr") # 饼图+甜甜圈图+旭日图+检验绘图
 # library("ggwordcloud")#词云
 # library("gghalves")#组合
+
 showtext_auto()
 showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
-# 200d
+# 520
 ```{r}
-import("D:/desktop/book/tidybook/data/200d/工作簿1.xlsx") %>% data.table() -> data
-for (i in 1:nrow(data)) {
-  data %>%
-    select_mix(1) %>%
-    slice_dt(i) %>%
-    str_c("省") -> data[i, 1]
-  data %>%
-    select_mix(2) %>%
-    slice_dt(i) %>%
-    str_c("市") -> data[i, 2]
-}
-data %>%
-  export("D:/desktop/book/tidybook/data/200d/省1.xlsx")
-```
-
-```{r}
-import("D:/desktop/book/tidybook/data/200d/使用.xlsx") %>% data.table() -> data
-setwd("D:/desktop/book/GS(2019)1822号")
-File <- list.files()[c(13, 20, 27, 6)]
-shp2019 <- list()
-for (i in 1:length(File)) {
-  shp2019[[i]] <- st_read(File[i])
+love <- function(x, na.omit = T) {
+  y1 <- -2.14 * (sqrt(2) - sqrt(abs(x)))^(1 / 3)
+  y2 <- sqrt(2 * sqrt(x^2) - x^2)
+  return(data.frame(x = x, y1 = y1, y2 = y2))
 }
 ```
 
 ```{r}
-data %>%
-  left_join_dt(shp2019[[2]], by = c("城市" = "市")) -> data1
+x <- seq(-2, 2, by = 0.001)
+data1 <- data.frame(x = c(0, 0), y = c(-0.5, -1), label = c("-2.14 * (sqrt(2) - sqrt(abs(x)))^(1 / 3)", "sqrt(2 * sqrt(x^2) - x^2)"))
 ```
 
 ```{r}
-ggplot() +
-  geom_sf(data = shp2019[[1]], fill = "NA", size = 0.1, color = "#96999C") +
-  geom_sf(data = shp2019[[2]], fill = "NA", size = 0.1, color = "#96999C") +
-  # geom_sf(data = shp2019[[3]], fill = "NA", size = 0.1, color = "#96999C") +
-  geom_sf(data = shp2019[[4]], fill = "NA", size = 0.5, color = "#96999C") +
-  geom_sf(data = data1, size = 0.1, color = "#96999C", aes(geometry = geometry, fill = 确诊)) + #
-  expand_limits(fill = seq(0, 30, by = 5)) +
-  scale_fill_gradientn(colors = viridis::viridis(500)) +
-  labs(caption = "GS(2019)1822号") +
-  Yuri_theme +
-  theme(
-    axis.line = element_line(color = NA),
-    legend.key.height = unit(1.5, "cm"),
-    plot.caption.position = "plot",
-  )
+love(x) -> data
+data %>%
+  ggplot() +
+  geom_point(aes(x = x, y = y1, color = y1), size = 1, shape = 21) +
+  geom_point(aes(x = x, y = y2, color = y2), size = 1, shape = 21) +
+  geom_text_repel(data = data1, aes(x = x, y = y, label = label), size = 5, color = "#C34E7C") +
+  scale_color_gradientn(colors = viridis::viridis(4000)) +
+  coord_fixed(ratio = 1 / 1) +
+  labs(x = "", y = "") +
+  lin_theme +
+  theme(legend.position = "none")
 ```
 
+```{r}
+love <- function(x, na.omit = T) {
+  y <- (0.64 * sqrt(abs(x)) - 0.8 + 1.2^abs(x) * cos(200 * x)) * sqrt(cos(x))
+  return(data.frame(x = x, y = y))
+}
+```
 
+```{r}
+x <- seq(-pi / 2, pi / 2, by = 0.001)
+```
+
+```{r}
+love(x) -> data
+data %>%
+  ggplot() +
+  geom_point(aes(x = x, y = y, color = y), size = 3, shape = "+") +
+  # geom_line(aes(x = x, y = y, color = y), size = 0.5) +
+  scale_color_gradientn(colors = viridis::viridis(4000)) +
+  coord_fixed(ratio = 1 / 1) +
+  labs(x = "", y = "") +
+  lin_theme +
+  theme(legend.position = "none")
+```
+
+```{r}
+love <- function(x, na.omit = T) {
+  y <- (sqrt(1 - (abs(x) - 1)^2) - (-2 * sqrt(1 - 0.5 * abs(x)))) / 2 * cos(200 * x) + ((sqrt(1 - (abs(x) - 1)^2)) + (-2 * sqrt(1 - 0.5 * abs(x)))) / 2
+
+  return(data.frame(x = x, y = y))
+}
+```
+
+```{r}
+x <- seq(-2, 2, by = 0.001)
+```
+
+```{r}
+love(x) -> data
+data %>%
+  ggplot() +
+  geom_point(aes(x = x, y = y, color = y), size = 3, shape = "+") +
+  # geom_line(aes(x = x, y = y, color = y), size = 0.5) +
+  scale_color_gradientn(colors = viridis::viridis(4000)) +
+  coord_fixed(ratio = 1 / 1) +
+  labs(x = "", y = "") +
+  lin_theme +
+  theme(legend.position = "none")
+```
 
 # 地图
 审图号:GS(2019)1822号
@@ -130,7 +155,7 @@ for (i in 1:length(File)) {
 ggplot() + # 国界线
   geom_sf(data = shp2021[[1]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -142,7 +167,7 @@ ggplot() + # 国界线
 ggplot() + # 海岸线
   geom_sf(data = shp2021[[2]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -154,7 +179,7 @@ ggplot() + # 海岸线
 ggplot() + # 经纬网
   geom_sf(data = shp2021[[3]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -166,7 +191,7 @@ ggplot() + # 经纬网
 ggplot() + # 九段线
   geom_sf(data = shp2021[[4]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -178,7 +203,7 @@ ggplot() + # 九段线
 ggplot() + # 省面
   geom_sf(data = shp2021[[5]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -190,7 +215,7 @@ ggplot() + # 省面
 ggplot() + # 地市面
   geom_sf(data = shp2021[[6]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -202,7 +227,7 @@ ggplot() + # 地市面
 ggplot() + # 县面
   geom_sf(data = shp2021[[7]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -214,7 +239,7 @@ ggplot() + # 县面
 ggplot() + # 省界线
   geom_sf(data = shp2021[[8]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -226,7 +251,7 @@ ggplot() + # 省界线
 ggplot() + # 市界线
   geom_sf(data = shp2021[[9]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -238,7 +263,7 @@ ggplot() + # 市界线
 ggplot() + # 县界线
   geom_sf(data = shp2021[[10]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -250,7 +275,7 @@ ggplot() + # 县界线
 ggplot() + # 主要公路
   geom_sf(data = shp2021[[11]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -262,7 +287,7 @@ ggplot() + # 主要公路
 ggplot() + # 主要河流
   geom_sf(data = shp2021[[12]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -274,7 +299,7 @@ ggplot() + # 主要河流
 ggplot() + # 主要铁路
   geom_sf(data = shp2021[[13]], fill = "#34558B", size = 0.5, color = "#FC766A") +
   labs(caption = "GS(2021)5448号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -286,7 +311,7 @@ ggplot() + # 主要铁路
 ggplot() + # 省
   geom_sf(data = shp2019[[1]], fill = "#34558B", size = 0.2, color = "#FFFFFF") +
   labs(caption = "GS(2019)1822号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -298,7 +323,7 @@ ggplot() + # 省
 ggplot() + # 市
   geom_sf(data = shp2019[[2]], fill = "#34558B", size = 0.2, color = "#FFFFFF") +
   labs(caption = "GS(2019)1822号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -310,7 +335,7 @@ ggplot() + # 市
 ggplot() + # 县
   geom_sf(data = shp2019[[3]], fill = "#34558B", size = 0.2, color = "#FFFFFF") +
   labs(caption = "GS(2019)1822号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -322,7 +347,7 @@ ggplot() + # 县
 ggplot() + # 九段线
   geom_sf(data = shp2019[[4]], fill = "#34558B", size = 0.5, color = "#34558B") +
   labs(caption = "GS(2019)1822号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -366,7 +391,7 @@ ggplot() +
   expand_limits(fill = seq(0, 30, by = 5)) +
   scale_fill_gradientn(colors = viridis::viridis(500)) +
   labs(caption = "GS(2019)1822号") +
-  Yuri_theme +
+  lin_theme +
   theme(
     axis.line = element_line(color = NA),
     legend.key.height = unit(1.5, "cm"),
@@ -382,7 +407,7 @@ import("D:/desktop/book/tidybook/data/other/网络图.xlsx") %>%
   geom_edge_arc(aes(edge_width = Cor), edge_alpha = 0.1, color = "#34558B") + # 画线
   geom_node_point(size = 5, color = "#FC766A") + # 画点
   geom_node_text(aes(label = name), repel = TRUE) + # 加标签
-  Yuri_theme +
+  lin_theme +
   theme(
     legend.position = "none",
     axis.line = element_line(color = NA),
@@ -553,10 +578,6 @@ grViz("
       ")
 ```
 
-```{r}
-import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") -> q
-```
-
 # 美学举例(A药B药降血糖)
 ```{r}
 data <- import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx")
@@ -570,7 +591,7 @@ data %>%
   ggplot(aes(x = drug, y = before)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
-  Yuri_theme +
+  lin_theme +
   expand_limits(y = c(7, 12)) -> before
 ```
 
@@ -580,7 +601,7 @@ data %>%
   ggplot(aes(x = drug, y = after)) +
   stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, size = 0.5, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
-  Yuri_theme +
+  lin_theme +
   expand_limits(y = c(7, 9)) -> after
 ```
 
@@ -608,7 +629,7 @@ databa %>%
     y_position = 11.5,
     test = t.test,
   ) +
-  Yuri_theme +
+  lin_theme +
   expand_limits(y = c(6, 12)) -> dif
 ```
 
@@ -634,8 +655,8 @@ databa %>%
     test = t.test,
   ) +
   expand_limits(y = c(6, 12)) +
-  Yuri_theme +
-  theme(legend.position = (c(0.95, 0.25))) -> sum
+  lin_theme +
+  theme(legend.position = (c(0.95, 0.95))) -> sum
 ```
 
 ```{r}
@@ -648,94 +669,99 @@ lay_grid(list(before, dif, after, sum), lay)
 ```
 
 # ggplot2其他
+```{r}
+import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") %>% data.table() -> data
+```
+
 ## 折线直方图
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, color = group1, fill = group1)) +
+data %>%
+  ggplot(aes(x = BC_Spec, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
   geom_freqpoly(size = 1, alpha = 1, stat = "bin") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 2)
+  coord_fixed(ratio = 0.25 / 50)
 ```
 
 ## 点直方图
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, color = group1, fill = group1)) +
+data %>%
+  slice_dt(1:400) %>%
+  ggplot(aes(x = BC_Spec, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
   geom_dotplot(size = 1, alpha = 0.5, shape = 21, stroke = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.95, 0.95)))
 ```
 
 ## 拟合分位数的回归线
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
-  geom_quantile(size = 1, linetype = 1, alpha = 1, stat = "quantile") +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_quantile(size = 1, linetype = 1, alpha = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
-  theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 20)
+  coord_fixed(ratio = 0.25 / 0.1) +
+  lin_theme +
+  theme(legend.position = (c(0.25, 0.95)))
 ```
 
 ## 面积图
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
-  geom_area(size = 1, linetype = 1, alpha = 0.5, stat = "identity") +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_area(size = 1, linetype = 1, alpha = 0.5) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
-  theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 50)
+  coord_fixed(ratio = 1 / 1) +
+  lin_theme +
+  theme(legend.position = (c(0.35, 0.95)))
 ```
 
 ## 阶梯图
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
-  geom_step(size = 1, linetype = 1, alpha = 1, stat = "identity") +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_step(size = 1, linetype = 1, alpha = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
-  theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 40)
+  coord_fixed(ratio = 0.25 / 0.2) +
+  lin_theme +
+  theme(legend.position = (c(0.35, 0.95)))
 ```
 
 ## 二维等高线颜色密度图
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  Yuri_theme +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
   geom_density_2d_filled(bins = 20, alpha = 1, show.legend = F) +
-  coord_fixed(ratio = 20 / 40)
+  coord_fixed(ratio = 0.25 / 0.2) +
+  lin_theme
 ```
 
 ## 六边形二维直方图
 (hexbin)
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  Yuri_theme +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
   geom_hex(bins = 20, alpha = 1, color = "#FFFFFF", size = 0.5) +
-  theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 40)
+  coord_fixed(ratio = 0.25 / 0.2) +
+  lin_theme +
+  theme(legend.position = (c(0.25, 0.95)))
 ```
 
 ## 散点图和二维密度图之间的交叉
 (ggpointdensity)
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  Yuri_theme +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
   geom_pointdensity(method = "auto", adjust = 4, alpha = 1, size = 5, shape = 16, stroke = 1) + # "default""kde2d"
+  coord_fixed(ratio = 0.25 / 0.2) +
   theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 40)
+  lin_theme
 ```
 
 # 社科相关
@@ -745,7 +771,7 @@ import("D:/desktop/book/tidybook/data/4.xlsx") %>%
   mutate_dt(n = 1) %>%
   ggplot(aes(x = Q, y = n)) +
   geom_col(aes(fill = Q), color = 1, alpha = 0.5) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none") -> stat
 ```
 
@@ -755,7 +781,7 @@ import("D:/desktop/book/tidybook/data/4.xlsx") %>%
   summarise_dt(n = .N, by = Q) %>%
   ggplot(aes(x = Q, y = n)) +
   geom_col(aes(fill = Q), color = 1, alpha = 0.5) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none") -> fst
 ```
 
@@ -810,44 +836,44 @@ import("D:/desktop/book/tidybook/data/2013-2020年中国总理记者会关键词
   geom_text_wordcloud(family = "Source Han Sans") +
   scale_size_area(max_size = 15) +
   scale_color_gradient(low = "#F8CDCD", high = "#696AAD") +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 # 文字标签防重叠
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, color = age)) +
-  geom_text_repel(aes(label = pH), size = 6) +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = BC_VF)) +
+  geom_text_repel(aes(label = RELATIONSHIP.0), size = 6) +
   scale_color_gradientn(colors = viridis::viridis(500)) +
-  expand_limits(fill = seq(65, 85, by = 5)) +
-  Yuri_theme
+  expand_limits(fill = seq(0, 1, by = 0.2)) +
+  lin_theme
 ```
-
 
 # 边际图
 (ggside)
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
-  geom_point(size = 5, shape = 21, alpha = 0.7, stroke = 1) +
-  scale_x_continuous(breaks = seq(0, 250, by = 20), minor_breaks = seq(0, 250, by = 10)) +
-  scale_y_continuous(breaks = seq(0, 250, by = 20), minor_breaks = seq(0, 250, by = 10)) +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_point(size = 2, shape = "+", alpha = 0.7, stroke = 1) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
   geom_xsidehistogram(aes(y = after_stat(count)), bins = 20, alpha = 0.2) +
   geom_ysidehistogram(aes(x = after_stat(count)), bins = 20, alpha = 0.2) +
-  scale_ysidex_continuous(breaks = seq(0, 50, by = 5), guide = guide_axis(angle = 0)) +
-  scale_xsidey_continuous(breaks = seq(0, 50, by = 5), guide = guide_axis(angle = 0)) +
+  scale_ysidex_continuous(breaks = seq(0, 1000, by = 150), guide = guide_axis(angle = 90)) +
+  scale_xsidey_continuous(breaks = seq(0, 500, by = 150), guide = guide_axis(angle = 0)) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(
     ggside.panel.scale = 0.2,
     ggside.panel.border = element_rect(color = NA, fill = NA),
     ggside.panel.grid = element_line(color = 1, size = 1, linetype = "1"),
     ggside.panel.background = element_rect(color = NA, fill = NA)
   ) +
+  lin_theme +
   theme(legend.position = "none") +
-  coord_fixed(ratio = 20 / 40)
+  coord_fixed(ratio = 0.4 / 0.2)
 ```
 
 ### 其他代码
@@ -874,31 +900,32 @@ q %>%
 
 # (ggbeeswarm)微笑散点图
 ```{r}
-import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") %>%
-  longer_dt(n, drug, name = "group", value = "value") %>%
-  ggplot(aes(x = group, y = value, color = drug, fill = drug)) +
-  geom_beeswarm(cex = 4, priority = "density", size = 5, shape = 21, alpha = 0.5, stroke = 1, method = "swarm", corral = "gutter") +
+data %>%
+  slice_dt(1:200) %>%
+  longer_dt(BC_VF, BC_CARD, RELATIONSHIP.0, COHAB, name = "group", value = "value") %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_beeswarm(cex = 1.5, priority = "density", size = 5, shape = "+", alpha = 0.5, method = "swarm", corral = "gutter") +
   # priority = "descending""density""random""none"
   # method = "compactswarm""hex""square""center"
   # corral = "wrap""random""omit"
   # geom_quasirandom(method = "smiley",cex = 4, size = 5, shape = 21, alpha = 0.5, stroke = 1)+
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.95, 0.95)))
 ```
 
 # (gghalves)散点+箱线+提琴
 ```{r}
-import("D:/desktop/book/tidybook/data/case_MS/P57_t.xlsx") %>%
-  longer_dt(n, drug, name = "group", value = "value") %>%
-  ggplot(aes(x = group, y = value, color = group)) +
-  geom_half_boxplot(alpha = 0.8, size = 1, position = position_nudge(x = 0, y = 0), side = "l", fill = NA, center = TRUE) +
-  geom_half_violin(alpha = 0.8, size = 1, position = position_nudge(x = 0, y = 0), side = "r", fill = NA, trim = FALSE) +
-  geom_half_point(shape = 21, stroke = 1, size = 2, side = "l", range_scale = 0.5) +
+data %>%
+  longer_dt(BC_VF, BC_CARD, RELATIONSHIP.0, COHAB, name = "group", value = "value") %>%
+  ggplot(aes(x = group, y = value, color = COHAB, fill = COHAB)) +
+  geom_half_boxplot(alpha = 0.8, size = 0.5, position = position_nudge(x = 0, y = 0), side = "l", fill = NA, center = TRUE) +
+  geom_half_violin(alpha = 0.8, size = 0.5, position = position_nudge(x = 0, y = 0), side = "r", fill = NA, trim = FALSE) +
+  # geom_half_point(shape = 21, stroke = 1, size = 1, side = "l", range_scale = 0.5, fill = NA) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.95, 0.95)))
 ```
 
@@ -913,7 +940,7 @@ import("D:/desktop/book/tidybook/data/break.xlsx") %>%
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   ggbreak::scale_y_break(c(10, 100), ticklabels = NULL, scales = 1) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
@@ -966,28 +993,30 @@ ggsurvplot(
   tables.y.text.col = T,
   risk.table.title = "",
   risk.table.pos = "out",
-  ggtheme = Yuri_theme,
-  tables.theme = Yuri_theme
+  ggtheme = lin_theme,
+  tables.theme = lin_theme
 ) +
   labs(x = "Follow up time(d)", y = "survival probability", tag = "tag")
 ```
 
 # Violin+SEM+line
 ```{r, echo = F}
-import("D:/desktop/book/tidybook/data/case_2/4.xlsx") %>%
-  longer_dt(name = "group", value = "value") -> c
-c[, c("mean", "sd", "n") := .(mean(value), sd(value), .N), by = group]
+data %>%
+  longer_dt(RELATIONSHIP.0, COHAB, name = "group", value = "value") -> c
+c[, c("mean", "sd", "n") := .(mean(value), sd(value), .N), by = RELATIONSHIP.0]
 c %>%
-  ggplot(aes(x = group, y = mean)) +
-  geom_violin(aes(x = group, y = value), color = NA, fill = "#696AAD", alpha = 0.3, width = 0.5) +
+  ggplot(aes(x = RELATIONSHIP.0, y = mean)) +
+  geom_violin(aes(x = RELATIONSHIP.0, y = value), color = NA, fill = "#696AAD", alpha = 0.3, width = 0.5, trim = T) +
   geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), color = "#696AAD", width = 0.2, size = 1) +
+  geom_point(aes(x = RELATIONSHIP.0, y = mean), color = "#696AAD", shape = 21, size = 2, fill = NA, stroke = 1) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 0, by = 0)) +
+  lin_theme
+```
   geom_segment(x = 1, y = 0.434, xend = 2, yend = 0.785, color = "#696AAD", size = 1) +
   geom_segment(x = 2, y = 0.785, xend = 3, yend = 0.691, color = "#696AAD", size = 1) +
-  geom_point(aes(x = group, y = mean), color = "#696AAD", shape = 21, size = 2, fill = NA, stroke = 1, ) +
-  scale_y_continuous(breaks = seq(0, 2, by = 0.2), minor_breaks = seq(0, 0, by = 0)) +
++
   scale_x_discrete(name = "", limits = c("1", "2", "3"), labels = c("A", "B", "C"), breaks = c("1", "2", "3")) +
-  Yuri_theme
-```
+
 
 # YuriR
 ```{r}
@@ -1031,6 +1060,6 @@ data5 %>%
   scale_x_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = seq(0, 1, by = 0.05)) +
   scale_y_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = seq(0, 1, by = 0.1)) +
   coord_fixed(ratio = 1 / 1) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = (c(0.95, 0.95)))
 ```

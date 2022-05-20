@@ -36,7 +36,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("tayloRswift") #
 # library("rio") #
 # library("tidyverse") #
@@ -46,7 +46,7 @@ showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 ```{r}
-import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") -> q
+import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") %>% data.table() -> data
 ```
 
 # ggplot2基本结构
@@ -69,34 +69,36 @@ import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") -> q
 
 ## 绘图框架
 ```{r}
-p框架 <- ggplot(data = q, aes(x = group1, y = CO2, color = group1, fill = group1))
+p框架 <- ggplot(data = data, aes(x = BC_Spec, y = BC_PWY))
 p框架
 ```
 
 ## 美学外图层
 ```{r}
 p美学外图层 <- p框架 +
-  stat_boxplot(aes(x = group1, y = CO2), geom = "errorbar", color = 1)
+  geom_point(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0), alpha = 0.5, size = 2, shape = "+")
 p美学外图层
 ```
 
 ## 美学内图层
 ```{r}
 p美学内图层 <- p美学外图层 +
-  stat_boxplot(aes(x = group1, y = CO2, color = group1, fill = group1), geom = "boxplot", alpha = 0.5)
+  geom_density_2d(aes(x = BC_Spec, y = BC_PWY), size = 0.2)
 p美学内图层
 ```
 
-## 其他包图层
+## 其他包或数据图层
 ```{r}
-p其他包图层 <- p美学内图层 +
-  ggbeeswarm::geom_beeswarm(cex = 4, priority = "density", size = 5, shape = 21, alpha = 0.3, stroke = 2, method = "swarm", corral = "gutter")
-p其他包图层
+data1 <- data.frame(x = 0.25, y = 0.4, label = "This is label")
+
+p其他包或数据图层 <- p美学内图层 +
+  geom_text_repel(data = data1, aes(x = x, y = y, label = label), col = "#BD3645", size = 5)
+p其他包或数据图层
 ```
 
 ## 离散颜色变量图层
 ```{r}
-p离散颜色变量图层 <- p其他包图层 +
+p离散颜色变量图层 <- p其他包或数据图层 +
   scale_color_manual(values = cols)
 p离散颜色变量图层
 ```
@@ -111,14 +113,15 @@ p离散填充变量图层
 ## 轴范围
 ```{r}
 p轴范围 <- p离散填充变量图层 +
-  expand_limits(y = c(20, 120))
+  expand_limits(y = c(0, 0.6))
 p轴范围
 ```
 
 ## 刻线
 ```{r}
 p刻线 <- p轴范围 +
-  scale_y_continuous(breaks = seq(0, 200, by = 20), minor_breaks = seq(0, 200, by = 10))
+  scale_y_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = seq(0, 1, by = 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.25), minor_breaks = seq(0, 1, by = 0.05))
 p刻线
 ```
 
@@ -132,7 +135,7 @@ p文字图层
 ## 总主题图层
 ```{r}
 p总主题图层 <- p文字图层 +
-  Yuri_theme
+  lin_theme
 p总主题图层
 ```
 
@@ -145,343 +148,396 @@ p个性化主题图层
 
 # 基础绘图               
 ## 空白 `geom_blank()`
-```{r, fig.width = 5, fig.height = 7}
-p空白 <- ggplot(data = q, aes(x = pH, y = CO2), ) +
-  geom_blank(stat = "identity") +
+```{r, fig.width = 5, fig.height = 6}
+p空白 <- ggplot(data = data, aes(x = BC_Spec, y = BC_PWY)) +
+  geom_blank() +
   coord_flip() +
-  labs(x = "X轴", y = "Y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签")
+  labs(x = "X轴", y = "Y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签") +
+  lin_theme
 p空白
 ```
 
-## QQ图`stat_qq()`+`stat_qq_line()`
+## QQ图`stat_qq(geom = "point")`+`stat_qq_line(geom = "line")`
 ```{r}
-shapiro.test(q$CO2)
-pQQ图 <- ggplot(data = q, aes(sample = CO2), ) +
-  stat_qq_line(geom = "line") +
-  stat_qq(geom = "point") +
+pQQ图 <- ggplot(data = data, aes(sample = BC_Spec)) +
+  stat_qq_line() +
+  stat_qq() +
   geom_abline(intercept = 0, slope = 1, color = "blue", size = 1) +
-  expand_limits(x = c(-3, 3), y = c(0, 110)) +
-  coord_fixed(ratio = 1 / 25)
+  expand_limits(x = c(-4, 4), y = c(0, 1.2)) +
+  coord_fixed(ratio = 2 / 0.5) +
+  lin_theme
 pQQ图
+data %>%
+  mutate_vars(1, scale) %>%
+  ggplot(aes(sample = BC_Spec)) +
+  stat_qq_line() +
+  stat_qq() +
+  geom_abline(intercept = 0, slope = 1, color = "blue", size = 1) +
+  expand_limits(x = c(-4, 4), y = c(-4, 4)) +
+  coord_fixed(ratio = 1 / 1) +
+  lin_theme
 ```
 
 ## 直方图+密度曲线
-### count`geom_histogram()`/`geom_density()`
+### count`geom_histogram(stat = "bin")`/`geom_density(stat = "density")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2), ) +
-  geom_histogram(aes(y = ..count..), bins = 50, stat = "bin") +
-  stat_density(aes(y = ..count..), geom = "density")
+data %>%
+  ggplot(aes(x = BC_Spec)) +
+  geom_histogram(aes(y = ..count..), bins = 10) +
+  stat_density(aes(y = ..count..), color = 1, fill = NA) +
+  lin_theme
 ```
 
-### density`stat_bin()`/`stat_density()`
+### density`stat_bin(geom = "col")`/`stat_density(geom = "density")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2), ) +
-  stat_bin(aes(y = ..density..), bins = 10, geom = "col") +
-  stat_density(aes(y = ..density..), geom = "density")
+data %>%
+  ggplot(aes(x = BC_Spec)) +
+  stat_bin(aes(y = ..density..), bins = 10) +
+  stat_density(aes(y = ..density..), color = 1, fill = NA) +
+  lin_theme
 ```
 
 ## 散点图`geom_point()`/`stat_identity(geom = "point")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  geom_point(stat = "identity") -> p散点图
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_point() +
+  lin_theme -> p散点图
 p散点图
 ```
 
 ## 顺序连接图`geom_path()`/`stat_identity(geom = "path")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  geom_path(stat = "identity")
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_path() +
+  lin_theme
 ```
 
 ## 折线图`geom_line()`/`stat_identity(geom = "line")`;地毯线`geom_rug()`/`stat_identity(geom = "rug")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  geom_line(stat = "identity") +
-  geom_rug(stat = "identity")
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_line() +
+  geom_rug() +
+  lin_theme
 ```
 
 ## 二维直方图`geom_bin2d()`/`stat_bin_2d(geom = "tile")`;二维等高线图`geom_density_2d()`/`stat_density_2d(geom = "density_2d")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  geom_bin2d(stat = "bin2d") +
-  geom_density_2d(stat = "density_2d")
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_bin2d() +
+  geom_density_2d() +
+  lin_theme
 ```
 
 ## 条图`geom_col/bar()`/`stat_summary(geom = "col/bar")`
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
-  stat_summary(geom = "col", width = 0.3, color = "blue", fill = "red", alpha = 0.2) +
-  geom_bar(stat = "summary", width = 0.5, color = "green", fill = "yellow", alpha = 0.2)
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
+  geom_col(width = 0.3, color = "#BD3645", fill = "#34558B", alpha = 0.2) +
+  lin_theme
 ```
 
 ## errorbar`geom_errorbar()`
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
-  stat_boxplot(geom = "errorbar", color = "red", width = 0.5) +
-  stat_summary(fun.data = "mean_sd", geom = "errorbar", color = "blue", width = 0.5)
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
+  # 箱线图
+  stat_boxplot(geom = "errorbar", color = "red", size = 1, width = 0.5) +
+  # mean±SD
+  stat_summary(fun.data = "mean_sd", geom = "errorbar", color = "blue", size = 1, width = 0.5) +
+  lin_theme
 ```
+
 SEM,均值的标准误
 $$SEM = SD / sqrt( n )$$
 ```{r}
-q %>%
-  summarize_dt(n = .N, sd = sd(CO2), mean = mean(CO2), by = group1) %>%
-  ggplot(aes(x = group1, y = mean)) +
-  geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), color = "red", width = 0.5) +
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), color = "blue", width = 0.5)
+data %>%
+  summarize_dt(n = .N, sd = sd(BC_Spec), mean = mean(BC_Spec), by = RELATIONSHIP.0) %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = mean)) +
+  # mean±SEM
+  geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), color = "red", size = 1, width = 0.5) +
+  # mean±SD
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), color = "blue", size = 1, width = 0.5) +
+  lin_theme
 ```
 
 ## crossbar`stat_summary(geom = "crossbar")`
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
-  stat_summary(fun = "mean", geom = "crossbar", lineend = "square")
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
+  stat_summary(fun = "mean", geom = "crossbar", lineend = "square", size = 1, color = "#34558B") +
+  stat_summary(fun = "median", geom = "crossbar", lineend = "square", size = 1, color = "#BD3645") +
+  lin_theme
 ```
 
 ## 分组点图
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
+  geom_jitter(stat = "identity", width = 0.2, color = "blue") +
   geom_point(stat = "identity", color = "red") +
-  geom_jitter(stat = "identity", width = 0.2, color = "blue")
+  lin_theme
 ```
 
 ## 箱线图`stat_boxplot(geom = "boxplot")`+`stat_boxplot(geom = "errorbar")`
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
   stat_boxplot(geom = "errorbar") +
-  stat_boxplot(geom = "boxplot")
+  stat_boxplot(geom = "boxplot") +
+  lin_theme
 ```
 
 ## 提琴图`stat_ydensity(geom = "violin")`
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
-  stat_ydensity(geom = "violin", trim = F)
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
+  stat_ydensity(geom = "violin", trim = F) +
+  lin_theme
 ```
 
 ## 参考线`geom_vline(xintercept=)`+`geom_hline(yintercept=)`+`geom_abline(intercept=, slope=)`+`geom_segment(x = , y = , xend = , yend = )`
 ```{r}
 p垂直线 <- p散点图 +
-  geom_vline(xintercept = 60) + # 垂直线
-  geom_hline(yintercept = 120) + # 水平线
-  geom_abline(intercept = 0, slope = 2) + # 函数直线
-  geom_segment(x = 40, y = 80, xend = 80, yend = 120) # 线段
+  geom_vline(xintercept = 0.65, size = 1) + # 垂直线
+  geom_hline(yintercept = 0.25, size = 1) + # 水平线
+  geom_abline(intercept = 0, slope = 0.5, size = 1) + # 函数直线
+  geom_segment(x = 0.4, y = 0.2, xend = 0.8, yend = 0.2, size = 1) # 线段
 p垂直线
 ```
 
 ## 曲线段`geom_curve(x = , y = , xend = , yend = ,curvature = )`
 ```{r}
 p曲线段 <- p散点图 +
-  geom_curve(x = 40, y = 80, xend = 80, yend = 120, curvature = -0.5) +
-  geom_curve(x = 40, y = 80, xend = 80, yend = 120, curvature = 0) +
-  geom_curve(x = 40, y = 80, xend = 80, yend = 120, curvature = 0.5)
+  geom_curve(x = 0.4, y = 0.3, xend = 0.8, yend = 0.3, curvature = -0.5, size = 1) +
+  geom_curve(x = 0.4, y = 0.3, xend = 0.8, yend = 0.3, curvature = 0, size = 1) +
+  geom_curve(x = 0.4, y = 0.3, xend = 0.8, yend = 0.3, curvature = 0.5, size = 1)
 p曲线段
 ```
 
 ## 综合练习
 ```{r}
-p综合图1 <- ggplot(q, aes(x = CO2, y = O2)) +
-  geom_point(stat = "identity") +
-  geom_line(stat = "identity") +
-  geom_rug(stat = "identity")
+p综合图1 <- data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_point() +
+  geom_line() +
+  geom_rug() +
+  lin_theme
 p综合图1
 ```
 
 ```{r}
-p综合图2 <- ggplot(q, aes(x = group1, y = CO2)) +
+p综合图2 <- ggplot(data, aes(x = RELATIONSHIP.0, y = BC_Spec)) +
   stat_ydensity(geom = "violin", trim = F) +
+  geom_jitter(width = 0.2) +
   stat_boxplot(geom = "errorbar", width = 0.15) +
   stat_boxplot(geom = "boxplot", width = 0.15) +
-  geom_jitter(stat = "identity", width = 0.2)
+  lin_theme
 p综合图2
 ```
 
 # aes美学外参数
 ## QQ图qqline+qq
 ```{r}
-q %>%
-  ggplot(aes(sample = CO2), ) +
+data %>%
+  ggplot(aes(sample = BC_Spec)) +
   stat_qq_line(linetype = 1, color = "#FC766A", alpha = 1, size = 1, lineend = "square") +
   stat_qq(shape = 21, color = "#FC766A", fill = "#95AAD3", alpha = 1, size = 3, stroke = 1) +
   geom_abline(intercept = 0, slope = 1, color = "blue", size = 1) +
-  expand_limits(x = c(-3, 3), y = c(0, 110)) +
-  coord_fixed(ratio = 1 / 25)
+  expand_limits(x = c(-4, 4), y = c(0, 1.2)) +
+  coord_fixed(ratio = 2 / 0.5) +
+  lin_theme
 ```
 
 ## 直方图histogram
 ```{r}
-q %>%
-  ggplot(aes(x = CO2), ) +
-  geom_histogram(bins = 30, color = "#FC766A", fill = "#95AAD3", alpha = 0.5, size = 0.5, lineend = "square")
+data %>%
+  ggplot(aes(x = BC_Spec)) +
+  geom_histogram(bins = 30, color = "#FC766A", fill = "#95AAD3", alpha = 0.5, size = 0.5, lineend = "square") +
+  lin_theme
 ```
 
 ## 密度曲线density
 ```{r}
-q %>%
-  ggplot(aes(x = CO2), ) +
-  geom_density(color = "#FC766A", fill = "#95AAD3", alpha = 0.2, size = 1, linetype = 3, lineend = "square")
+data %>%
+  ggplot(aes(x = BC_Spec)) +
+  geom_density(color = "#FC766A", fill = "#95AAD3", alpha = 0.2, size = 1, linetype = 3, lineend = "square") +
+  lin_theme
 ```
 
 ## 散点图point
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
-  geom_point(shape = 21, color = "#FC766A", fill = "#95AAD3", alpha = 0.5, size = 3, stroke = 1)
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_point(shape = 21, color = "#FC766A", fill = "#95AAD3", alpha = 0.5, size = 3, stroke = 1) +
+  lin_theme
 ```
 
 ## 折线图line;地毯线rug
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2)) +
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
   geom_line(linetype = 2, color = "#FC766A", alpha = 0.5, size = 1, lineend = "square") +
-  geom_rug(color = "#FC766A", alpha = 0.5, size = 1, lineend = "square")
+  geom_rug(color = "#FC766A", alpha = 0.5, size = 1, lineend = "square") +
+  lin_theme
 ```
 
 ## 条图(col/bar)+errorbar
 ```{r}
-q %>%
-  summarize_dt(n = .N, sd = sd(CO2), mean = mean(CO2), by = group1) %>%
-  ggplot(aes(x = group1, y = mean)) +
+data %>%
+  summarize_dt(n = .N, sd = sd(BC_Spec), mean = mean(BC_Spec), by = RELATIONSHIP.0) %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = mean)) +
   geom_col(color = "#FC766A", fill = "#95AAD3", alpha = 0.5, width = 0.5, size = 1, lineend = "square") +
-  geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), color = 1, width = 0.25, size = 1, lineend = "square")
+  geom_errorbar(aes(ymin = mean - sd / sqrt(n), ymax = mean + sd / sqrt(n)), color = 1, width = 0.25, size = 1, lineend = "square") +
+  lin_theme
 ```
 
 ## 箱线图boxplot+errorbar
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
   stat_boxplot(geom = "errorbar", color = "#FC766A", fill = "#95AAD3", alpha = 1, size = 1, lineend = "square", width = 0.5) +
-  stat_boxplot(geom = "boxplot", color = NA, fill = "#FFFFFF", alpha = 1, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square", width = 0.5) +
-  stat_summary(fun = "median", geom = "crossbar", width = 0.5, color = "#FC766A", lineend = "square")
+  stat_boxplot(geom = "boxplot", color = NA, fill = "#00997B", alpha = 1, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square", width = 0.5) +
+  stat_summary(fun = "median", geom = "crossbar", width = 0.5, color = "#FC766A", lineend = "square") +
+  lin_theme
 ```
 
 ## 提琴图violin
 ```{r}
-q %>%
-  ggplot(aes(x = group1, y = CO2)) +
-  stat_ydensity(geom = "violin", trim = F, color = "#FC766A", fill = "#95AAD3", alpha = 0.5, size = 1, draw_quantiles = c(0.25, 0.5, 0.75), lineend = "square")
+data %>%
+  ggplot(aes(x = RELATIONSHIP.0, y = BC_Spec)) +
+  stat_ydensity(geom = "violin", trim = F, color = "#FC766A", fill = "#95AAD3", alpha = 0.5, size = 1, draw_quantiles = c(0.25, 0.5, 0.75), lineend = "square") +
+  lin_theme
 ```
 
 # aes美学内参数
 ## 数据重塑
 ```{r}
-longer_dt(q, age, pH, group1, name = "group", value = "value") -> q整理
-slice_dt(q整理, 1:3)
+data %>%
+  longer_dt(RELATIONSHIP.0, COHAB, name = "group", value = "value") -> data整理
 ```
 
 ## 箱线图aes
 ```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_boxplot(geom = "boxplot", alpha = 0.5, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square") +
-  stat_boxplot(geom = "errorbar", alpha = 1, size = 1, lineend = "square") +
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  stat_boxplot(geom = "boxplot", alpha = 0.5, size = 0.5, outlier.shape = "+", outlier.size = 1, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T) +
+  stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5) +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ## column-group
 ### `position_stack()`
 ```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_stack(), lineend = "square") +
-  scale_color_manual(values = viridis::viridis(2)) +
-  scale_fill_manual(values = viridis::viridis(2)) +
-  Yuri_theme +
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_col(alpha = 0.5, size = 1, position = position_stack(), lineend = "square") +
+  scale_color_manual(values = viridis::viridis(4)) +
+  scale_fill_manual(values = viridis::viridis(4)) +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ### `position_fill()`
 ```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_fill(), lineend = "square") +
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_col(alpha = 0.5, size = 1, position = position_fill(), lineend = "square") +
   scale_y_continuous(labels = scales::percent) +
-  scale_color_manual(values = viridis::viridis(2)) +
-  scale_fill_manual(values = viridis::viridis(2)) +
-  Yuri_theme +
+  scale_color_manual(values = viridis::viridis(4)) +
+  scale_fill_manual(values = viridis::viridis(4)) +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ### `position_dodge()`
 ```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_dodge(width = 1), lineend = "square") +
-  scale_color_manual(values = viridis::viridis(2)) +
-  scale_fill_manual(values = viridis::viridis(2)) +
-  Yuri_theme +
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_col(alpha = 0.5, size = 1, position = position_dodge(width = 1), lineend = "square") +
+  scale_color_manual(values = viridis::viridis(4)) +
+  scale_fill_manual(values = viridis::viridis(4)) +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ### `position_dodge2()`
 ```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_summary(geom = "col", alpha = 0.5, size = 1, position = position_dodge2(width = 2, padding = 0), lineend = "square") +
-  scale_color_manual(values = viridis::viridis(2)) +
-  scale_fill_manual(values = viridis::viridis(2)) +
-  Yuri_theme +
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  geom_col(alpha = 0.5, size = 1, position = position_dodge2(width = 2, padding = 0), lineend = "square") +
+  scale_color_manual(values = viridis::viridis(4)) +
+  scale_fill_manual(values = viridis::viridis(4)) +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ## 分面
 ### `facet_wrap()`
-```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_boxplot(geom = "boxplot", alpha = 0.5, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square") +
-  stat_boxplot(geom = "errorbar", alpha = 1, size = 1, lineend = "square") +
-  scale_color_manual(values = viridis::viridis(2)) +
-  scale_fill_manual(values = viridis::viridis(2)) +
-  facet_wrap(group ~ group1, scales = "free", ncol = 2) +
-  Yuri_theme +
+```{r, fig.width = 5, fig.height = 12}
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  stat_boxplot(geom = "boxplot", alpha = 0.5, size = 0.5, outlier.shape = "+", outlier.size = 2, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T) +
+  stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, lineend = "square") +
+  scale_color_manual(values = viridis::viridis(4)) +
+  scale_fill_manual(values = viridis::viridis(4)) +
+  facet_wrap(group ~ RELATIONSHIP.0, scales = "free", ncol = 2) +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ### `facet_grid()`
 ```{r}
-q整理 %>%
-  ggplot(aes(x = group, y = value, color = group1, fill = group1)) +
-  stat_boxplot(geom = "boxplot", alpha = 0.5, size = 1, outlier.shape = 21, outlier.size = 3, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T, lineend = "square") +
-  stat_boxplot(geom = "errorbar", alpha = 1, size = 1, lineend = "square") +
-  scale_color_manual(values = viridis::viridis(2)) +
-  scale_fill_manual(values = viridis::viridis(2)) +
-  facet_grid(group ~ group1, scales = "free") +
-  Yuri_theme +
+data整理 %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
+  stat_boxplot(geom = "boxplot", alpha = 0.5, size = 0.5, outlier.shape = "+", outlier.size = 2, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, outlier.stroke = 1, na.rm = T) +
+  stat_boxplot(geom = "errorbar", alpha = 1, size = 0.5, lineend = "square") +
+  scale_color_manual(values = viridis::viridis(4)) +
+  scale_fill_manual(values = viridis::viridis(4)) +
+  facet_grid(group ~ RELATIONSHIP.0, scales = "free") +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 ## 散点图-气泡图(size)aes
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age)) +
-  geom_point(stat = "identity", shape = 21, alpha = 1, stroke = 1, fill = NA)
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF)) +
+  geom_point(shape = 21, alpha = 1, stroke = 1, fill = NA) +
+  lin_theme
 ```
 
 ## 散点图-连续颜色(color/fill)aes
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, color = pH, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, alpha = 1, stroke = 1, size = 3)
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = BC_VF, fill = BC_VF)) +
+  geom_point(shape = 21, alpha = 1, stroke = 1, size = 3) +
+  lin_theme
 ```
 
 ## 散点图-形状(shape)aes
 ## 散点图-透明度(alpha)aes
 ## 折线图-线型(linetype)aes
+
 ## 综合练习
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8)
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  lin_theme
 ```
 
 # 度量
@@ -490,149 +546,177 @@ dt <- import("D:/desktop/book/tidybook/data/test.xlsx")
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::magma(24)) +
   scale_fill_manual(values = viridis::magma(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::inferno(24)) +
   scale_fill_manual(values = viridis::inferno(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::plasma(24)) +
   scale_fill_manual(values = viridis::plasma(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::viridis(24)) +
   scale_fill_manual(values = viridis::viridis(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::cividis(24)) +
   scale_fill_manual(values = viridis::cividis(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::rocket(24)) +
   scale_fill_manual(values = viridis::rocket(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::mako(24)) +
   scale_fill_manual(values = viridis::mako(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_manual(values = viridis::turbo(24)) +
   scale_fill_manual(values = viridis::turbo(24)) +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 
 dt %>%
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_col() +
   scale_color_taylor(palette = "lover") +
   scale_fill_taylor(palette = "lover") +
-  Yuri_theme
+  lin_theme +
+  theme(legend.position = "none")
 ```
 
 ## 原点`expand_limits(x = c(, ), y = c(, ), fill = seq(, , by = ))`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  expand_limits(x = c(0, 200), y = c(0, 200), fill = seq(7, 7.5, by = 0.1))
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  expand_limits(x = c(0, 1), y = c(0, 1), fill = seq(0, 1, by = 0.25)) +
+  lin_theme
 ```
 
 ## 调整Y轴`scale_y_continuous(breaks = seq(, , by = ), minor_breaks = seq(, , by = ))`连续变量/`scale_y_discrete(limits = c(), labels = c(), breaks = c())`离散变量  
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  scale_y_continuous(breaks = seq(40, 200, by = 20), minor_breaks = seq(40, 200, by = 10))
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  lin_theme
 ```
 
 ## 调整X轴`scale_x_continuous(breaks = seq(, , by = ), minor_breaks = seq(, , by = ))`连续变量/`scale_x_discrete(limits = c(), labels = c(), breaks = c())`离散变量  
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  scale_x_continuous(breaks = seq(0, 200, by = 10), minor_breaks = seq(0, 200, by = 5))
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  lin_theme
 ```
 
 ## 调整大小`scale_size_continuous(seq(, , by = ),range = c(, ))`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  scale_size_continuous(seq(65, 85, by = 5), range = c(2, 10))
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  scale_size_continuous(seq(0, 1, by = 0.2), range = c(2, 8)) +
+  lin_theme
 ```
 
 ## 调整颜色
 ### `scale_fill_gradient(low = "", high = "")`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
   scale_fill_gradient(low = "#AAC8FC", high = "#FFB3B5") +
-  expand_limits(fill = seq(7.2, 7.5, by = 0.1))
+  expand_limits(fill = seq(0, 1, by = 0.2)) +
+  lin_theme
 ```
 
 ### `scale_fill_gradient2(low = "", mid = "", high = "", midpoint = )`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  scale_fill_gradient2(low = "#41B47A", mid = "#EDEF5C", high = "#E24C80", midpoint = 7.35) +
-  expand_limits(fill = seq(7.2, 7.5, by = 0.1))
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  scale_fill_gradient2(low = "#41B47A", mid = "#EDEF5C", high = "#E24C80", midpoint = 0.64) +
+  expand_limits(fill = seq(0, 1, by = 0.2)) +
+  lin_theme
 ```
 
 ### `scale_fill_gradientn(colors = c())`
 ```{r}
-q %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
+data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
   geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
   scale_fill_gradientn(colors = viridis::viridis(500)) +
-  expand_limits(fill = seq(7.2, 7.5, by = 0.1))
+  expand_limits(fill = seq(0, 1, by = 0.2)) +
+  lin_theme
 ```
 
 ## 综合练习
 ```{r}
-p综合图 <- ggplot(q, aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  scale_x_continuous(breaks = seq(0, 200, by = 10), minor_breaks = seq(0, 200, by = 5)) +
-  scale_y_continuous(breaks = seq(40, 200, by = 20), minor_breaks = seq(40, 200, by = 10)) +
-  scale_size_continuous(seq(65, 85, by = 5), range = c(2, 5)) +
+p综合图 <- data %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  scale_size_continuous(seq(0, 1, by = 0.2), range = c(2, 8)) +
   scale_color_manual(values = cols) +
   scale_fill_gradientn(colors = viridis::viridis(500)) +
-  expand_limits(fill = seq(7.2, 7.5, by = 0.1))
+  expand_limits(fill = seq(0, 1, by = 0.2)) +
+  lin_theme
 p综合图
 ```
 
@@ -642,24 +726,22 @@ import("D:/desktop/book/tidybook/data/2020年全球癌症诊断数目最多的�
   ggplot(aes(x = group, y = value, color = group, fill = group)) +
   geom_segment(aes(x = reorder(group, value), xend = reorder(group, value), y = 0, yend = value), size = 2, alpha = 0.5, lineend = "square") +
   geom_point(aes(size = value), shape = 21, stroke = 1) +
-  # scale_color_manual(values = cols) +
-  # scale_fill_manual(values = fills) +
   scale_color_manual(values = viridis::viridis(10)) +
   scale_fill_manual(values = viridis::viridis(10)) +
   coord_flip() +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 # 配对图
 ```{r}
-data <- import("D:/desktop/book/tidybook/data/pvalue.xlsx")
-data <- data.table(data)
-data整理 <- longer_dt(data, n, group1, group2, group3, name = "group", value = "value")
-data整理
-data整理1 <- longer_dt(data整理, group, value, n, name = "group123", value = "value123")
-data整理1
-data整理1 %>%
+data1 <- import("D:/desktop/book/tidybook/data/pvalue.xlsx")
+data1 <- data.table(data1)
+data1整理 <- longer_dt(data1, n, group1, group2, group3, name = "group", value = "value")
+data1整理
+data1整理1 <- longer_dt(data1整理, group, value, n, name = "group123", value = "value123")
+data1整理1
+data1整理1 %>%
   ggplot(aes(x = group, y = value, color = group)) +
   stat_boxplot(geom = "errorbar", alpha = 1, width = 0.5, lineend = "square") +
   stat_boxplot(geom = "boxplot", alpha = 1, outlier.shape = 21, outlier.alpha = 1, outlier.color = "#BD3645", outlier.fill = NA, na.rm = T, fill = "#FFFFFF", width = 0.5, lineend = "square") +
@@ -685,32 +767,30 @@ data整理1 %>%
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
   facet_grid(value123 ~ group123) +
-  Yuri_theme +
+  lin_theme +
   theme(legend.position = "none")
 ```
 
 # 透明度
 ```{r}
-data.table(CO2 = c(rep(70, times = 20)), O2 = c(rep(140, times = 20)), group1 = c(rep("C", times = 20))) -> qc
-rbindlist(list(q, qc), fill = T) -> qdt
-qdt %>%
-  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
   geom_point(size = 5, shape = 21, alpha = 0.1, stroke = 1) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
-  theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 40)
+  lin_theme +
+  theme(legend.position = (c(0.25, 0.95))) +
+  coord_fixed(ratio = 0.25 / 0.2)
 ```
 
 # 频率气泡图
 ```{r}
-qdt %>%
-  ggplot(aes(x = CO2, y = O2, color = group1, fill = group1)) +
+data %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
   geom_point(shape = 21, alpha = 0.5, stroke = 1, stat = "sum") +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = fills) +
-  Yuri_theme +
-  theme(legend.position = (c(0.95, 0.95))) +
-  coord_fixed(ratio = 20 / 40)
+  lin_theme +
+  theme(legend.position = (c(0.25, 0.95))) +
+  coord_fixed(ratio = 0.25 / 0.2)
 ```

@@ -19,7 +19,7 @@ editor_options:
 ---
 
 ```{r, 代码全局设置, echo = F}
-knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png")
+knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment = "", echo = T, dpi = 200, collapse = F, fig.align = "left", dev = "png", cache = T)
 # , eval = F代码显示不运行
 # , include = F代码运行, 不显示代码和结果
 # , echo = T 显示代码块
@@ -34,9 +34,12 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 library("tidymodels") #
 library("ggalt") #
+library("e1071") # SVM
+library("ggrepel") #
+library("keras")
 showtext_auto()
 showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
@@ -48,83 +51,233 @@ import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gu
 
 ```{r}
 data %>%
-  ggplot(aes(x = BC_Spec, y = BC_PWY, )) +
-  geom_point(shape = 21, color = "#95AAD3", fill = NA, alpha = 0.2, size = 2, stroke = 1) +
-  Yuri_theme
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = BC_VF)) +
+  geom_point(alpha = 0.2, size = 3, shape = "+", stroke = 1, fill = NA) +
+  geom_text_repel(aes(label = RELATIONSHIP.0), size = 5) +
+  scale_color_gradientn(colors = viridis::viridis(500)) +
+  expand_limits(color = seq(-4, 1, by = 1)) +
+  lin_theme
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--
+# K 均值聚类
+```{r}
+data %>%
+  select_mix(1:2) -> points
+```
+
+## 探索
+```{r}
+tibble(k = 2:24) %>%
+  mutate(
+    kclust = future_map(k, ~ kmeans(points, .x)),
+    tidied = future_map(kclust, tidy),
+    glanced = future_map(kclust, glance),
+    augmented = future_map(kclust, augment, points)
+  ) -> kclusts
+```
+
+```{r}
+kclusts %>%
+  unnest(cols = c(tidied)) -> clusters
+clusters
+
+kclusts %>%
+  unnest(cols = c(augmented)) -> assignments
+assignments
+
+kclusts %>%
+  unnest(cols = c(glanced)) -> clusterings
+clusterings
+```
+
+```{r}
+assignments %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_point(aes(color = .cluster), shape = "+", stroke = 0.5, alpha = 0.2) +
+  geom_text_repel(data = clusters, aes(label = cluster), size = 3) +
+  facet_wrap(~k, ncol = 4) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  geom_vline(aes(xintercept = mean(BC_Spec)), color = "#34558B", linetype = 1, size = 0.5) +
+  geom_hline(aes(yintercept = mean(BC_PWY)), color = "#34558B", linetype = 1, size = 0.5) +
+  lin_theme +
+  theme(
+    axis.line = element_line(size = 0.5),
+    axis.ticks.x = element_line(size = 0.5),
+    axis.ticks.y = element_line(size = 0.5),
+  )
+```
+
+```{r}
+clusterings %>%
+  ggplot(aes(k, tot.withinss)) +
+  geom_line(size = 1, linetype = 1, color = "#FC766A") +
+  geom_point(size = 3, shape = 21, fill = NA, stroke = 1, color = "#34558B") +
+  scale_y_continuous(breaks = seq(0, 5000, by = 200), minor_breaks = seq(0, 5000, by = 100)) +
+  scale_x_continuous(breaks = seq(0, 5000, by = 1), minor_breaks = seq(0, 0, by = 0)) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  lin_theme +
+  theme(
+    panel.grid.major.x = element_line(color = "#96999C", size = 0.5, linetype = 3),
+    panel.grid.major.y = element_line(color = "#96999C", size = 0.5, linetype = 3)
+  )
+```
+
+## 分组
+```{r}
+set.seed(2022)
+kmeans(points, centers = 10) -> kclust
+summary(kclust)
+# kclust$cluster # 分组
+kclust$centers # 中心
+augment(kclust, points) -> data1 # 将点分类添加到原始数据集
+tidy(kclust) %>% # 每个集群级别进行汇总
+  data.table()
+glance(kclust) # 提取单行摘要
+kclust %>%
+  tidy() -> clusters
+```
+
+```{r}
+data1
+data1 %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_point(aes(color = .cluster), alpha = 0.2, size = 3, shape = "+", stroke = 0.8, fill = NA) +
+  geom_text_repel(data = clusters, aes(label = cluster), size = 5) +
+  geom_vline(aes(xintercept = mean(BC_Spec)), color = "#34558B", linetype = 2, size = 1) +
+  geom_hline(aes(yintercept = mean(BC_PWY)), color = "#34558B", linetype = 2, size = 1) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  scale_x_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(-5, 5, by = 0.5)) +
+  scale_y_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(-5, 5, by = 0.5)) +
+  lin_theme
+```
+
+```{r}
+data1 %>%
+  mutate_when(.cluster == 1, group = "A") %>%
+  mutate_when(.cluster == 2, group = "B") %>%
+  mutate_when(.cluster == 3, group = "A") %>%
+  mutate_when(.cluster == 4, group = "A") %>%
+  mutate_when(.cluster == 5, group = "B") %>%
+  mutate_when(.cluster == 6, group = "B") %>%
+  mutate_when(.cluster == 7, group = "B") %>%
+  mutate_when(.cluster == 8, group = "A") %>%
+  mutate_when(.cluster == 9, group = "A") %>%
+  mutate_when(.cluster == 10, group = "B") -> data1
+```
+
+```{r}
+data1 %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, color = group)) +
+  geom_point(alpha = 0.2, size = 3, shape = "+", stroke = 0.8, fill = NA) +
+  geom_vline(aes(xintercept = mean(BC_Spec)), color = "#34558B", linetype = 2, size = 1) +
+  geom_hline(aes(yintercept = mean(BC_PWY)), color = "#34558B", linetype = 2, size = 1) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = fills) +
+  scale_x_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(-5, 5, by = 0.5)) +
+  scale_y_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(-5, 5, by = 0.5)) +
+  lin_theme
+```
+
+# 神经网络
+```{r}
+train <- data1 %>%
+  select_mix(BC_Spec, BC_PWY, group) %>%
+  slice_dt(1:2512) %>%
+  data.frame()
+
+val <- data1 %>%
+  select_mix(BC_Spec, BC_PWY, group) %>%
+  slice_dt(2513:3349) %>%
+  data.frame()
+
+test <- data1 %>%
+  select_mix(BC_Spec, BC_PWY, group) %>%
+  # slice_sample_dt(0.618) %>%
+  slice_dt(3350:4187) %>%
+  data.frame()
+
+train$group <- as.factor(train$group)
+val$group <- as.factor(val$group)
+test$group <- as.factor(test$group)
+```
+
+```{r}
+biv_rec <- recipe(group ~ ., data = train) %>%
+  step_BoxCox(all_predictors()) %>%
+  step_normalize(all_predictors()) %>%
+  prep(training = train, retain = T)
+biv_rec
+
+val_normalized <- bake(biv_rec, new_data = val, all_predictors())
+test_normalized <- bake(biv_rec, new_data = test, all_predictors())
+```
+
+```{r}
+set.seed(20220516)
+nnet_fit <-
+  mlp(epochs = 100, hidden_units = 10, dropout = 0.382) %>%
+  set_mode("classification") %>%
+  set_engine("keras", verbose = 0) %>%
+  fit(group ~ ., data = bake(biv_rec, new_data = NULL))
+nnet_fit
+```
+
+```{r}
+val_results <-
+  val %>%
+  bind_cols(
+    predict(nnet_fit, new_data = val_normalized),
+    predict(nnet_fit, new_data = val_normalized, type = "prob")
+  )
+val_results %>% slice_dt(1:5)
+```
+
+```{r}
+val_results %>% roc_auc(truth = group, .pred_A) # .pred_B
+val_results %>% accuracy(truth = group, .pred_class)
+val_results %>% conf_mat(truth = group, .pred_class)
+```
+
+```{r}
+a_rng <- range(train$BC_Spec)
+b_rng <- range(train$BC_PWY)
+x_grid <-
+  expand.grid(
+    BC_Spec = seq(a_rng[1], a_rng[2], length.out = 100),
+    BC_PWY = seq(b_rng[1], b_rng[2], length.out = 100)
+  )
+```
+
+```{r}
+x_grid %>% data.table()
+
+x_grid_trans <- bake(biv_rec, new_data = x_grid)
+
+x_grid <-
+  x_grid %>%
+  bind_cols(predict(nnet_fit, x_grid_trans, type = "prob"))
+
+data2 <- data.frame(x = 2, y = -2, label = "AUC = 0.994")
+data2
+```
+
+```{r}
+x_grid %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY)) +
+  geom_text_repel(data = data2, aes(x = x, y = y, label = label), size = 5, col = "#BD3645") +
+  geom_point(data = data, aes(col = BC_VF), alpha = 0.5, shape = "+", size = 3) +
+  geom_text_repel(data = data, aes(x = BC_Spec, y = BC_PWY, label = RELATIONSHIP.0, col = BC_VF), size = 5) +
+  geom_smooth(data = data, size = 1, color = "#053981", fill = "#95AAD3", linetype = 1, alpha = 0.618, method = "loess", span = 0.618, se = T) +
+  geom_contour(aes(z = .pred_A), breaks = .5, col = "#E34F33", size = 1) +
+  geom_vline(data = data1, aes(xintercept = mean(BC_Spec)), color = "#34558B", linetype = 2, size = 0.5) +
+  geom_hline(data = data1, aes(yintercept = mean(BC_PWY)), color = "#34558B", linetype = 2, size = 0.5) +
+  scale_color_gradientn(colors = viridis::viridis(5000)) +
+  expand_limits(color = seq(-4, 1, by = 1)) +
+  scale_x_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(-5, 5, by = 0.5)) +
+  scale_y_continuous(breaks = seq(-5, 5, by = 1), minor_breaks = seq(-5, 5, by = 0.5)) +
+  lin_theme +
+  theme(legend.position = c(0.1, 0.95), )
+```

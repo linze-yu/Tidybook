@@ -36,7 +36,7 @@ knitr::opts_chunk$set(warning = F, error = F, message = F, prompt = F, comment =
 
 ## 加载包
 ```{r 加载包}
-library("YuriR") #
+library("linr") #
 # library("rio") #
 # library("tidyverse") #
 showtext_auto()
@@ -44,15 +44,16 @@ showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 ```{r}
-import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") %>%
-  ggplot(aes(x = CO2, y = O2, size = age, color = group1, fill = pH)) +
-  geom_point(stat = "identity", shape = 21, stroke = 1, alpha = 0.8) +
-  scale_x_continuous(breaks = seq(0, 200, by = 10), minor_breaks = seq(0, 200, by = 5)) +
-  scale_y_continuous(breaks = seq(40, 200, by = 20), minor_breaks = seq(40, 200, by = 10)) +
-  scale_size_continuous(seq(65, 85, by = 5), range = c(2, 5)) +
+import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") %>%
+  slice_dt(1:100) %>%
+  ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
+  geom_point(shape = 21, stroke = 1, alpha = 0.8) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.2), minor_breaks = seq(0, 1, by = 0.1)) +
+  scale_size_continuous(seq(0, 1, by = 0.2), range = c(1, 6)) +
   scale_color_manual(values = cols) +
   scale_fill_gradientn(colors = viridis::viridis(500)) +
-  expand_limits(fill = seq(7.2, 7.5, by = 0.1)) -> p综合图
+  expand_limits(fill = seq(0, 1, by = 0.2)) -> p综合图
 ```
 
 # 字体部分`element_text()`
@@ -116,7 +117,7 @@ p图例文字
 ```{r}
 p分面标签文本 <- p综合图 +
   labs(x = "X轴", y = "Y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签") +
-  facet_grid(~group1) +
+  facet_grid(~RELATIONSHIP.0) +
   theme(strip.text = element_text(size = 20, hjust = 0, margin = margin(0, 0, 0, 0)), )
 p分面标签文本
 ```
@@ -198,7 +199,7 @@ p图例符号背景
 ```{r}
 p分面标签背景 <- p综合图 +
   labs(x = "X轴", y = "Y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签") +
-  facet_grid(~group1) +
+  facet_grid(~RELATIONSHIP.0) +
   theme(strip.background = element_rect(color = "#FC766A", fill = "#95AAD3", size = 1), )
 p分面标签背景
 ```
@@ -270,7 +271,7 @@ p图边界
 ## 分面绘图区之间的间距panel.spacing
 ```{r}
 p分面绘图区之间的间距 <- p综合图 +
-  facet_grid(~group1) +
+  facet_grid(~RELATIONSHIP.0) +
   labs(x = "X轴", y = "Y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签") +
   theme(panel.spacing = unit(2, "cm"), )
 p分面绘图区之间的间距
@@ -392,10 +393,12 @@ p
 ```{r}
 p <- p综合图 +
   labs(x = "X轴", y = "Y轴", title = "标题", subtitle = "副标题", caption = "说明文字", tag = "标签") +
-  Yuri_theme +
-  theme(legend.box = "vertical", ) +
-  theme(legend.position = (c(0.95, 0.95))) +
-  theme(legend.direction = "horizontal") +
-  theme(legend.box.just = (0))
+  lin_theme +
+  theme(
+    legend.box = "vertical",
+    legend.position = (c(0.95, 0.95)),
+    legend.direction = "horizontal",
+    legend.box.just = (0)
+  )
 p
 ```
