@@ -670,7 +670,7 @@ lay_grid(list(before, dif, after, sum), lay)
 
 # ggplot2其他
 ```{r}
-import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") %>% data.table() -> data
+import("https://raw.githubusercontent.com/linze-yu/Environmental-factors-shaping-the-gut-microbiome-in-a-Dutch-population/main/Fig2C.csv", header = T) %>% data.table() -> data
 ```
 
 ## 折线直方图
@@ -902,7 +902,7 @@ data %>%
 ```{r}
 data %>%
   slice_dt(1:200) %>%
-  longer_dt(BC_VF, BC_CARD, RELATIONSHIP.0, COHAB, name = "group", value = "value") %>%
+  longer_dt(BC_VF, BC_CARD, RELATIONSHIP.0, name = "group", value = "value") %>%
   ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
   geom_beeswarm(cex = 1.5, priority = "density", size = 5, shape = "+", alpha = 0.5, method = "swarm", corral = "gutter") +
   # priority = "descending""density""random""none"
@@ -918,8 +918,8 @@ data %>%
 # (gghalves)散点+箱线+提琴
 ```{r}
 data %>%
-  longer_dt(BC_VF, BC_CARD, RELATIONSHIP.0, COHAB, name = "group", value = "value") %>%
-  ggplot(aes(x = group, y = value, color = COHAB, fill = COHAB)) +
+  longer_dt(BC_VF, BC_CARD, RELATIONSHIP.0, name = "group", value = "value") %>%
+  ggplot(aes(x = group, y = value, color = RELATIONSHIP.0, fill = RELATIONSHIP.0)) +
   geom_half_boxplot(alpha = 0.8, size = 0.5, position = position_nudge(x = 0, y = 0), side = "l", fill = NA, center = TRUE) +
   geom_half_violin(alpha = 0.8, size = 0.5, position = position_nudge(x = 0, y = 0), side = "r", fill = NA, trim = FALSE) +
   # geom_half_point(shape = 21, stroke = 1, size = 1, side = "l", range_scale = 0.5, fill = NA) +
@@ -1002,7 +1002,8 @@ ggsurvplot(
 # Violin+SEM+line
 ```{r, echo = F}
 data %>%
-  longer_dt(RELATIONSHIP.0, COHAB, name = "group", value = "value") -> c
+  slice_dt(1:250) %>%
+  longer_dt(RELATIONSHIP.0, name = "group", value = "value") -> c
 c[, c("mean", "sd", "n") := .(mean(value), sd(value), .N), by = RELATIONSHIP.0]
 c %>%
   ggplot(aes(x = RELATIONSHIP.0, y = mean)) +

@@ -44,7 +44,7 @@ showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 ```
 
 ```{r}
-import("D:/desktop/book/tidybook/data/paper/Environmental factors shaping the gut microbiome in a Dutch population.csv") %>%
+import("https://raw.githubusercontent.com/linze-yu/Environmental-factors-shaping-the-gut-microbiome-in-a-Dutch-population/main/Fig2C.csv", header = T) %>%
   slice_dt(1:100) %>%
   ggplot(aes(x = BC_Spec, y = BC_PWY, size = BC_VF, color = RELATIONSHIP.0, fill = BC_CARD)) +
   geom_point(shape = 21, stroke = 1, alpha = 0.8) +

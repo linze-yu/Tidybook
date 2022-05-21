@@ -46,18 +46,15 @@ showtext_opts(dpi = 400) # 默认(大约为dpi = dpi*2)
 
 # 读取GitHub数据
 ```{r}
-data <- "https://raw.githubusercontent.com/Yurisuriyel/Taylor-Swift/main/Taylor%20Swift.csv"
-data <- import(data,header = T)
+import("https://raw.githubusercontent.com/linze-yu/Environmental-factors-shaping-the-gut-microbiome-in-a-Dutch-population/main/Fig2C.csv", header = T) %>% data.table() -> data
 head(data)
 ```
 
 # 数据导入tidyfst
 ```{r}
-import("D:/desktop/book/tidybook/data/case_MS/p131_4.xlsx") %>%
-  data.table() -> q
-q %>%
+data %>%
   slice_dt(1:3)
-dim(q)
+dim(data)
 ```
 
 # 数据清洗tidyfst
@@ -68,10 +65,10 @@ dim(q)
 ## 处理NA值
 ```{r, eval = F}
 drop_na_dt() # 去除含有NA的全部行
-drop_na_dt(age) # 去除age列含有NA的全部行
-drop_na_dt(age, 标记物) # 去除age, 标记物列含有NA的全部行
-replace_na_dt(age, to = 0) # 将age, NA替换为0
-fill_na_dt(age) # 对NA值填充
+drop_na_dt(BC_Spec) # 去除age列含有NA的全部行
+drop_na_dt(BC_Spec, BC_PWY) # 去除age, 标记物列含有NA的全部行
+replace_na_dt(BC_Spec, to = 0) # 将age, NA替换为0
+fill_na_dt(BC_Spec) # 对NA值填充
 delete_na_cols(prop = 1.00) # 删除全部为NA的列
 delete_na_cols(n = 2) # 删除数据少于2个的列
 delete_na_rows(prop = 0.6) # 删除低于0.6数据的行
@@ -81,26 +78,26 @@ delete_na_rows(n = 2) # 删除数据少于两个的行
 ## 列处理col
 ### 选取列/删除列`-`
 ```{r}
-q %>%
-  select_mix(4, group1, 1:2, O2:group1, "O2", c("pH"), rm.dup = F) %>% # rm.dup = F不删除重复列
+data %>%
+  select_mix(4, RELATIONSHIP.0, 2:3, BC_PWY:BC_VF, "BC", c("BC_CARD"), rm.dup = F) %>% # rm.dup = F不删除重复列
   slice_dt(1:3)
 ```
 
 ### 列内容调整
 ```{r}
-q %>%
-  rename_dt(二氧化碳 = CO2, 氧气 = O2, 年龄 = age, 分组 = group1) %>% # 列改名
+data %>%
+  rename_dt(第一列 = BC_Spec, 第二列 = BC_PWY, 第三列 = BC_VF, 第四列 = BC_CARD, 分组 = RELATIONSHIP.0) %>% # 列改名
   slice_dt(1:3)
-q %>%
-  mutate_dt(n = 1, test = CO2 + O2) %>% # 新建列
+data %>%
+  mutate_dt(n = 1, test = BC_Spec + BC_PWY) %>% # 新建列
   slice_dt(1:3)
-q %>%
-  mutate_when(age < 70, age1 = "年龄小") %>% # 条件赋值
+data %>%
+  mutate_when(BC_Spec < 0.5, BC_Spec1 = "小") %>% # 条件赋值
   slice_dt(1:3)
-q %>%
-  mutate_vars("O2", function(x) x - 200) %>% # 定制化更新列
+data %>%
+  mutate_vars("BC", function(x) x - 200) %>% # 定制化更新列
   slice_dt(1:3)
-q %>%
+data %>%
   mutate_vars(is.numeric, function(x) x - 200) %>% # 定制化更新列
   slice_dt(1:3)
 ```
@@ -108,66 +105,66 @@ q %>%
 ## 行处理row
 ### 选取行
 ```{r}
-q %>%
+data %>%
   slice_dt(1:3)
-q %>%
+data %>%
   slice_dt(1, 3)
-q %>%
+data %>%
   slice_dt(c(1, 3))
-q %>%
-  slice_dt(age > 80)
-q %>%
-  filter_dt(age > 70 & CO2 <= 50) # 筛选行
-q %>%
-  top_dt(age, n = 10) # 提取age前十行
-q %>%
-  top_dt(age, prop = 0.1) # 提取age前10%行
-q %>%
+data %>%
+  slice_dt(BC_Spec > 0.9)
+data %>%
+  filter_dt(BC_Spec > 0.5 & BC_PWY <= 0.8) # 筛选行
+data %>%
+  top_dt(BC_Spec, n = 10) # 提取age前十行
+data %>%
+  top_dt(BC_Spec, prop = 0.1) # 提取age前10%行
+data %>%
   slice_sample_dt(5) # 抽取5个随机样本
-q %>%
+data %>%
   slice_sample_dt(0.2) # 抽取20%随机样本
-q %>%
-  distinct_dt(CO2, .keep_all = T) # 去重.keep_all = T,显示全部数据框
+data %>%
+  distinct_dt(BC_Spec, .keep_all = T) # 去重.keep_all = T,显示全部数据框
 ```
 
 ## 排序
 ### 列位置调整
 ```{r}
-q %>%
-  relocate_dt(group1) %>% # 移动到第一列
+data %>%
+  relocate_dt(RELATIONSHIP.0) %>% # 移动到第一列
   slice_dt(1:3)
-q %>%
-  relocate_dt(age, how = "last") %>% # 移动到最后一列
+data %>%
+  relocate_dt(BC_Spec, how = "last") %>% # 移动到最后一列
   slice_dt(1:3)
-q %>%
-  relocate_dt(age, how = "after", where = O2) %>% # 精确调整
+data %>%
+  relocate_dt(BC_Spec, how = "after", where = BC_CARD) %>% # 精确调整
   slice_dt(1:3)
-q %>%
-  relocate_dt(group1, how = "before", where = CO2) %>% # 精确调整
+data %>%
+  relocate_dt(RELATIONSHIP.0, how = "before", where = BC_PWY) %>% # 精确调整
   slice_dt(1:3)
 ```
 
 ### 行排序
 ```{r}
-q %>%
-  arrange_dt(O2) %>% # 升序
+data %>%
+  arrange_dt(BC_Spec) %>% # 升序
   slice_dt(1:3)
-q %>%
-  arrange_dt(-O2) %>% # 降序
+data %>%
+  arrange_dt(-BC_Spec) %>% # 降序
   slice_dt(1:3)
-q %>%
-  arrange_dt(O2, CO2) %>% # 两变量先O2后CO2
+data %>%
+  arrange_dt(BC_Spec, BC_PWY) %>% # 两变量先O2后CO2
   slice_dt(1:3)
 ```
 
 ## 合并
 ### 直接合并
 ```{r}
-q %>%
-  rbind(q) %>% # 上下
+data %>%
+  rbind(data) %>% # 上下
   dim()
-q %>%
-  cbind(q) %>% # 左右
+data %>%
+  cbind(data) %>% # 左右
   slice_dt(1:3)
 ```
 
@@ -226,50 +223,51 @@ e3
 # 数据变换tidyfst
 ## 转置
 ```{r, eval = F}
-q %>%
-  t_dt()
+data %>%
+  t_dt() %>%
+  dim()
 ```
 
 ## 宽变长
 ```{r}
-q %>%
-  longer_dt(age, pH, group1, name = "group", value = "value") %>%
+data %>%
+  longer_dt(RELATIONSHIP.0, name = "group", value = "value") %>%
   dim()
 ```
 
 ## 长变宽
 ```{r}
-q %>%
-  wider_dt(name = "group1", value = "age") %>%
+data %>%
+  wider_dt(name = "RELATIONSHIP.0", value = "BC_Spec") %>%
   dim()
 ```
 
 ## 聚集
 ### 计数
 ```{r}
-q %>%
-  count_dt(CO2, .name = "count") %>%
+data %>%
+  count_dt(BC_Spec, .name = "count") %>%
   slice_dt(1:3)
-q %>%
-  add_count_dt(CO2, .name = "CO2count") %>%
+data %>%
+  add_count_dt(BC_Spec, .name = "BC_Speccount") %>%
   slice_dt(1:3)
 ```
 
 ### 数据框统计
 ```{r}
-q %>%
-  summarise_dt(n = .N, by = group1) # 计数
-q %>%
-  summarise_dt(mean = mean(CO2), by = group1) # 求平均数
-q %>%
-  summarise_dt(median = median(CO2), by = group1) # 求中位数
-q %>%
-  summarise_dt(sd = sd(CO2), by = group1) # 标准差
+data %>%
+  summarise_dt(n = .N, by = RELATIONSHIP.0) # 计数
+data %>%
+  summarise_dt(mean = mean(BC_Spec), by = RELATIONSHIP.0) # 求平均数
+data %>%
+  summarise_dt(median = median(BC_Spec), by = RELATIONSHIP.0) # 求中位数
+data %>%
+  summarise_dt(sd = sd(BC_Spec), by = RELATIONSHIP.0) # 标准差
 ```
 
 ## 中心化标准化
 ```{r}
-q %>%
+data %>%
   mutate_vars(1:4, scale) %>%
   dim()
 ```
@@ -312,56 +310,56 @@ mat
 # 数据清洗data.table
 ## 提取点
 ```{r}
-q[1, 2] # 第一行第二列data.table
-q[[1, 2]] # 第一行第二列c
-q[c(1, 3), 3] # 第一三行第三列data.table
-q[c(1, 3), "CO2"] # 第一三行weight列data.table
+data[1, 2] # 第一行第二列data.table
+data[[1, 2]] # 第一行第二列c
+data[c(1, 3), 3] # 第一三行第三列data.table
+data[c(1, 3), "BC_CARD"] # 第一三行weight列data.table
 ```
 
 ## 操作行
 ```{r}
-q[c(1, 3), ] # 提取一三行
-q[3:5, ] # 选择3-5行
-q[group1 == "B", ] %>%
+data[c(1, 3), ] # 提取一三行
+data[3:5, ] # 选择3-5行
+data[RELATIONSHIP.0 == "PAR_CH", ] %>%
   slice_dt(1:3) # 选择group1为B的行
-q[age %in% c("65", "69"), ] %>%
+data[BC_Spec %in% c("0.636264744", "0.488086586"), ] %>%
   slice_dt(1:3) # 选择age中等于65,69的行
 ```
 
 ## 操作列
 `list="."`
 ```{r}
-q[, "age"] %>%
+data[, "BC_Spec"] %>%
   slice_dt(1:3)
-q[, 2] %>%
+data[, 2] %>%
   slice_dt(1:3)
-q[, c("age", "pH")] %>%
+data[, c("BC_Spec", "BC_PWY")] %>%
   slice_dt(1:3)
-q[, age:O2] %>%
+data[, BC_Spec:BC_VF] %>%
   slice_dt(1:3)
-q[, list(age)] %>%
+data[, list(BC_Spec)] %>%
   slice_dt(1:3)
-q[, .(age, pH)] %>%
+data[, .(BC_Spec, BC_VF)] %>%
   slice_dt(1:3)
-q[, -c("age", "pH")] %>%
+data[, -c("BC_Spec", "BC_VF")] %>%
   slice_dt(1:3)
-q[, !c("age", "pH")] %>%
+data[, !c("BC_Spec", "BC_VF")] %>%
   slice_dt(1:3)
-q[age > 80]
-q[pH %in% c(7.41, 7.5)]
-q[age > 60 & O2 %in% c(60, 50)]
-q[, c("COO", "N") := list(CO2 + O2, 51:100)][, agef := if_else(age > 70, ">70", "<=70")] %>%
+data[BC_Spec > 0.4]
+data[BC_PWY %in% c(0.119941578, 0.127930502)]
+data[BC_Spec > 0.5 & BC_CARD %in% c(0.447612148, 0.281117393)]
+data[, c("SpecPWY", "N") := list(BC_Spec + BC_PWY, 1:4187)][, BC_CARDc := if_else(BC_CARD > 0.5, ">0.5", "<=0.5")] %>%
   slice_dt(1:3)
 ```
 
 ## 排序`-`换序
 ```{r}
-q[order(age), ]
+data[order(BC_Spec), ]
 ```
 
 ## 计算
 ```{r}
-q[, .(sum = sum(CO2), mean = mean(O2), median = median(age), sd = sd(pH))] # data.table
+data[, .(sum = sum(BC_Spec), mean = mean(BC_PWY), median = median(BC_VF), sd = sd(BC_CARD)), by = RELATIONSHIP.0] # data.table
 ```
 
 # 数据变换data.table
